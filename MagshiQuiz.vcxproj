@@ -119,8 +119,17 @@
     <ClCompile Include="sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DataBase.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="Helper.h" />
+    <ClInclude Include="Protocol.h" />
+    <ClInclude Include="Question.h" />
+    <ClInclude Include="RecivedMessage.h" />
+    <ClInclude Include="Room.h" />
     <ClInclude Include="sqlite3.h" />
+    <ClInclude Include="TriviaServer.h" />
+    <ClInclude Include="User.h" />
+    <ClInclude Include="Validator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
