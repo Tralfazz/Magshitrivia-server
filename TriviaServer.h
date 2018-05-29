@@ -4,11 +4,15 @@
 #include <map>
 #include <mutex>
 #include <queue>
+#include <thread>
+#include <algorithm>
 
 #include "User.h"
 #include "DataBase.h"
 #include "Room.h"
-#include "RecivedMessage.h"
+#include "RecievedMessage.h"
+#include "Protocol.h"
+#include "Helper.h"
 
 
 class TriviaServer
@@ -19,8 +23,8 @@ class TriviaServer
 		DataBase _db;
 		std::map<int, Room*> _roomList;
 		
-		std::mutex _mtxRecivedMessages;
-		std::queue<RecivedMessage*> _queRcvMessages;
+		std::mutex _mtxRecievedMessages;
+		std::queue<RecievedMessage*> _queRcvMessages;
 
 		static int _roomIdSequence;
 
@@ -28,35 +32,35 @@ class TriviaServer
 		void bindAndListen();
 		void accept();
 		
-		void clientHandler(SOCKET);
-		void safeDeleteUser(RecivedMessage*);
+		void clientHandler(SOCKET clientSock);
+		void safeDeleteUser(RecievedMessage*);
 
 		User* handleSignin();
 		bool hanleSignUp();
 		void handleSignOut();
 
-		void handleLeaveGame(RecivedMessage*);
-		void handleStartGame(RecivedMessage*);
-		void handlePlayerAnswer(RecivedMessage*);
+		void handleLeaveGame(RecievedMessage*);
+		void handleStartGame(RecievedMessage*);
+		void handlePlayerAnswer(RecievedMessage*);
 
-		bool handleCreateRoom(RecivedMessage*);
-		bool handleCloseRoom(RecivedMessage*);
-		bool handleJoinRoom(RecivedMessage*);
-		bool handleLeaveRoom(RecivedMessage*);
-		void handleGetUserInRoom(RecivedMessage*);
-		void handleGetRooms(RecivedMessage*);
+		bool handleCreateRoom(RecievedMessage*);
+		bool handleCloseRoom(RecievedMessage*);
+		bool handleJoinRoom(RecievedMessage*);
+		bool handleLeaveRoom(RecievedMessage*);
+		void handleGetUserInRoom(RecievedMessage*);
+		void handleGetRooms(RecievedMessage*);
 
 
-		void handleGetBestScores(RecivedMessage*);
-		void handleGetPersonalStatus(RecivedMessage*);
+		void handleGetBestScores(RecievedMessage*);
+		void handleGetPersonalStatus(RecievedMessage*);
 
-		void handleRecivedMessages();
-		void addRecivedMessage(RecivedMessage*);
-		RecivedMessage* buildReciveMessage(SOCKET, int);
+		void handleRecievedMessages();
+		void addRecievedMessage(RecievedMessage*);
+		RecievedMessage* buildReciveMessage(SOCKET, int);
 
 
 		User* getUserByName(std::string name);
-		User* getUserBySocket(SOCKET);
+		User* getUserBySocket(SOCKET sock);
 		Room* getRoomById(int id);
 
 	public:
