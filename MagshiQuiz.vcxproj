@@ -119,6 +119,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Question.cpp" />
     <ClCompile Include="RecivedMessage.cpp" />
+    <ClCompile Include="Room.cpp" />
     <ClCompile Include="sqlite3.c" />
     <ClCompile Include="TriviaServer.cpp" />
     <ClCompile Include="WSAInitializer.cpp" />
