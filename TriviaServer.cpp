@@ -56,15 +56,15 @@ void TriviaServer::bindAndListen()
 
 void TriviaServer::accept()
 {
-	while (true)
-	{
+	//while (true)
+	//{
 		SOCKET clientSocket = ::accept(this->_socket, NULL, NULL);
 
 		if (clientSocket == INVALID_SOCKET)
 			throw std::exception(__FUNCTION__);
 
 		std::thread(&TriviaServer::clientHandler, this, clientSocket).detach();
-	}
+	//}
 }
 
 
@@ -73,10 +73,10 @@ void TriviaServer::server()
 {
 	this->bindAndListen();
 
-	//while (true)
-	//{
+	while (true)
+	{
 		this->accept();
-	//}
+	}
 }
 
 

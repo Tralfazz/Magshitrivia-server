@@ -13,12 +13,16 @@ def main():
             print("Message from server: " , msg)
 
             sock.close()
+            print("Success")
+            exit(0)
 
 
         except KeyboardInterrupt as ks:
             exit(0)
         except Exception as e:
             input("press to try again")
+
+
 
 if __name__ == '__main__':
     main()
