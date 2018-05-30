@@ -1,10 +1,55 @@
 #pragma once
 
-class Protocol
+
+namespace Protocol 
 {
-	public:
-		static const int PORT = 8080;
+	enum Request
+	{
+		SIGN_IN = 200,
+		SIGN_OUT = 201,
+		SIGN_UP = 203,
 
-		static const int 
+		EXISTING_ROOMS = 205,
+		USERS_FROM_ROOM = 207,
 
-};
+		JOIN_ROOM = 209,
+		LEAVE_ROOM = 211,
+
+		CREATE_NEW_ROOM = 213,
+		CLOSE_ROOM = 215,
+
+		BEGIN_GAME = 217,
+
+		GAME_CLIENT_ANSWER = 219,
+
+		LEAVE_GAME = 222,
+		BEST_SCORES = 223,
+
+		PERSONAL_MODE = 225,
+
+		EXIT_APP = 299
+	};
+
+	enum Response 
+	{
+		SIGN_IN = 102,
+		SIGN_UP = 104,
+
+		EXISTING_ROOMS = 106,
+		USERS_FROM_ROOM = 108,
+
+		JOIN_ROOM = 110,
+		LEAVE_ROOM = 112,
+
+		CREATE_NEW_ROOM = 114,
+		CLOSE_ROOM = 116,
+
+		QUESTION = 118,
+		IS_ANSWER_CORRECT = 120,
+		END_GAME = 121,
+
+		BEST_SCORES = 124,
+
+		PERSONAL_MODE = 126
+	};
+}
