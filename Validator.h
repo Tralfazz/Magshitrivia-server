@@ -6,6 +6,6 @@
 static class Validator
 {
 	public:
-		bool isPasswordValid(std::string& password);
-		bool isUsernameValid(std::string& username);
+		static bool isPasswordValid(std::string& password);
+		static bool isUsernameValid(std::string& username);
 };

@@ -121,6 +121,7 @@
     <ClCompile Include="RecivedMessage.cpp" />
     <ClCompile Include="sqlite3.c" />
     <ClCompile Include="TriviaServer.cpp" />
+    <ClCompile Include="Validator.cpp" />
     <ClCompile Include="WSAInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>

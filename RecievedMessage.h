@@ -16,6 +16,10 @@ class RecievedMessage
 
 	public:
 
+		RecievedMessage(SOCKET sc, int msgCode);
+		RecievedMessage(SOCKET sc, int msgCode, std::vector<std::string> values);
+
+
 		SOCKET getSock();
 		User* getUser();
 		void setUser(User* user);

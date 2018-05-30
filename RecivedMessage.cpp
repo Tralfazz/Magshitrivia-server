@@ -1,6 +1,21 @@
 #include "RecievedMessage.h"
 
 
+
+RecievedMessage::RecievedMessage(SOCKET sc, int msgCode)
+{
+	this->_sock = sc;
+	this->_messageCode = msgCode;
+}
+
+
+RecievedMessage::RecievedMessage(SOCKET sc, int msgCode, std::vector<std::string> values)
+	: RecievedMessage(sc , msgCode)
+{
+	this->_values = values;
+}
+
+
 /*
 *	@return Socket: the socket in which the communication is used
 */

@@ -2,6 +2,11 @@
 #include "TriviaServer.h"
 
 
+
+///////---------------------------------- Server methods ----------------------------------///////
+
+
+
 TriviaServer::TriviaServer()
 {
 	//init Database
@@ -79,77 +84,217 @@ void TriviaServer::server()
 }
 
 
+
+
+
+RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
+{
+	//int msgCode = Helper::getMessageTypeCode(sc);
+	//std::string username = Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2));
+	//
+	//return new RecievedMessage(sc, msgCode);
+}
+
+
+
 void TriviaServer::clientHandler(SOCKET clientSock)
 {
 	int msgCode = Helper::getMessageTypeCode(clientSock);
 
 	while (msgCode != Protocol::Request::EXIT_APP && msgCode != 0)
 	{
+		RecievedMessage* msg = this->buildReciveMessage(clientSock, msgCode);
+
 		switch (msgCode)
 		{
 			case Protocol::Request::SIGN_IN:
+				this->handleSignin(msg); //assign to user object
 				TRACE("Client requested sign in")
 				break;
 
 			case Protocol::Request::SIGN_OUT:
+				this->handleSignOut(msg);
 				TRACE("Client requested sign out")
 				break;
 
 			case Protocol::Request::SIGN_UP:
+				this->handleSignUp(msg); //returns bool
 				TRACE("Client requested sign up")
 				break;
 
 			case Protocol::Request::EXISTING_ROOMS:
+				this->handleGetRooms(msg);
 				TRACE("Client requested all existing rooms")
 				break;
 
 			case Protocol::Request::USERS_FROM_ROOM:
+				this->handleGetUserInRoom(msg);
 				TRACE("Client requested users from room")
 				break;
 
 			case Protocol::Request::JOIN_ROOM:
+				this->handleJoinRoom(msg); //returns bool
 				TRACE("Client requested to join a room")
 				break;
 
 			case Protocol::Request::LEAVE_ROOM:
+				this->handleLeaveGame(msg); //returns bool
 				TRACE("Client requested to leave a room")
 				break;
 
 			case Protocol::Request::CREATE_NEW_ROOM:
-				TRACE("Client requested to create new room")
+				this->handleCreateRoom(msg); //returns bool
+				TRACE("Client requested to create new room") 
 				break;
 
-			case Protocol::Request::CLOSE_ROOM:
-				TRACE("Client requested to close room")
+			case Protocol::Request::CLOSE_ROOM: 
+				this->handleCloseRoom(msg); //returns bool
+				TRACE("Client requested to close room") 
 				break;
 
 			case Protocol::Request::BEGIN_GAME:
+				this->handleStartGame(msg);
 				TRACE("Client requested to begin game")
 				break;
 
 			case Protocol::Request::GAME_CLIENT_ANSWER:
+				this->handlePlayerAnswer(msg);
 				TRACE("Client sent an answer to the question")
 				break;
 
 			case Protocol::Request::LEAVE_GAME:
+				this->handleLeaveGame(msg);
 				TRACE("Client requested leave game")
 				break;
 
 			case Protocol::Request::BEST_SCORES:
+				this->handleGetBestScores(msg);
 				TRACE("Client requested best scores")
 				break;
 
 			case Protocol::Request::PERSONAL_MODE:
+				this->handleGetPersonalStatus(msg);
 				TRACE("Client requested personal mode")
 				break;
 		}
 
 		Helper::sendData(clientSock, "U sent me: " + std::to_string(msgCode));
 		msgCode = Helper::getMessageTypeCode(clientSock);
+
+		delete msg;
 	}
 
 	::closesocket(clientSock);
 }
+
+
+void TriviaServer::safeDeleteUser(RecievedMessage * msg)
+{
+}
+
+
+
+///////---------------------------------- Handle methods ----------------------------------///////
+
+
+User* TriviaServer::handleSignin(RecievedMessage* msg)
+{
+	return nullptr;
+}
+
+
+bool TriviaServer::handleSignUp(RecievedMessage* msg)
+{
+	std::string username = msg->getUser()->getUsername();
+	std::string password = msg->getValues()[0];
+	std::string email = msg->getValues()[1];
+
+	if (!Validator::isUsernameValid(username)) return false; //send 1043
+	if (!Validator::isPasswordValid(password)) return false; //send 1041
+
+	//TODO check if user exists in the db and add it if not
+
+	//this->_connectedUsers.
+
+	return false;
+}
+
+
+void TriviaServer::handleSignOut(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handleLeaveGame(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handleStartGame(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handlePlayerAnswer(RecievedMessage* msg)
+{
+}
+
+
+bool TriviaServer::handleCreateRoom(RecievedMessage* msg)
+{
+	return false;
+}
+
+
+bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
+{
+	return false;
+}
+
+
+bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
+{
+	return false;
+}
+
+
+bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
+{
+	return false;
+}
+
+
+void TriviaServer::handleGetUserInRoom(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handleGetRooms(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handleGetBestScores(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
+{
+}
+
+
+void TriviaServer::handleRecievedMessages()
+{
+}
+
+
+void TriviaServer::addRecievedMessage(RecievedMessage* msg)
+{
+}
+
+
+
 
 
 Room* TriviaServer::getRoomById(int id)
