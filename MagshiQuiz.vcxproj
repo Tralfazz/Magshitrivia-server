@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -116,7 +116,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Helper.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Question.cpp" />
+    <ClCompile Include="RecivedMessage.cpp" />
     <ClCompile Include="sqlite3.c" />
+    <ClCompile Include="TriviaServer.cpp" />
+    <ClCompile Include="WSAInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataBase.h" />
@@ -124,12 +129,13 @@
     <ClInclude Include="Helper.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Question.h" />
-    <ClInclude Include="RecivedMessage.h" />
+    <ClInclude Include="RecievedMessage.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="sqlite3.h" />
     <ClInclude Include="TriviaServer.h" />
     <ClInclude Include="User.h" />
     <ClInclude Include="Validator.h" />
+    <ClInclude Include="WSAInitializer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

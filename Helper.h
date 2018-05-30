@@ -8,21 +8,16 @@
 
 class Helper
 {
-public:
-
-	 
-	 
-	 static int getMessageTypeCode(SOCKET sc);
-	 static char* getPartFromSocket(SOCKET sc, int bytesNum, int flags);
-	 static int getIntPartFromSocket(SOCKET sc, int bytesNum);
-	 static std::string getStringPartFromSocket(SOCKET sc, int bytesNum);
-	 static void sendData(SOCKET sc, std::string message);
-	 static std::string getPaddedNumber(int num, int digits);
-
-private:
-	static char* getPartFromSocket(SOCKET sc, int bytesNum);
-
-
+	public:
+		 static int getMessageTypeCode(SOCKET sc);
+		 static char* getPartFromSocket(SOCKET sc, int bytesNum, int flags);
+		 static int getIntPartFromSocket(SOCKET sc, int bytesNum);
+		 static std::string getStringPartFromSocket(SOCKET sc, int bytesNum);
+		 static void sendData(SOCKET sc, std::string message);
+		 static std::string getPaddedNumber(int num, int digits);
+	
+	private:
+		static char* getPartFromSocket(SOCKET sc, int bytesNum);
 };
 
 

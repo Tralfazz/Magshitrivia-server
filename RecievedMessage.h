@@ -3,9 +3,10 @@
 #include <WinSock2.h>
 #include <vector>
 #include <string>
+#include <exception>
 #include "User.h"
 
-class RecivedMessage
+class RecievedMessage
 {
 	private:
 		SOCKET _sock;
