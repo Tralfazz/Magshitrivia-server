@@ -1,5 +1,11 @@
 #pragma once
+
+#include <vector>
+#include <string>
+
 #include "User.h"
+
+class User;
 
 class Room
 {

@@ -89,6 +89,7 @@ void TriviaServer::server()
 
 RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 {
+	throw std::exception("Not implemented yet!");
 	//int msgCode = Helper::getMessageTypeCode(sc);
 	//std::string username = Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2));
 	//

@@ -15,7 +15,7 @@ std::string Room::getUsersAsString(std::vector<User*> usersList, User * excludeU
 	{
 		if (user != excludeUser)
 		{
-			s += (user->getUsername + ",");
+			s += (user->getUsername() + ",");
 		}
 	}
 	s += "\n";

@@ -43,15 +43,16 @@ void User::clearGame()
 
 bool User::createRoom(int, std::string, int, int, int)
 {
-	if (_currRoom)
-		;// msg code 114
-	else
-		Protocol::Response::;//msg code 114
+	return false;
+	//if (_currRoom)
+	//	// msg code 114
+	//else
+	//	Protocol::Response::;//msg code 114
 }
 
 bool User::joinRoom(Room * newRoom)
 {
-	return ;
+	return false;
 }
 
 void User::leaveRoom()

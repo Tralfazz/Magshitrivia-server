@@ -8,6 +8,8 @@
 #include "Protocol.h"
 
 
+class Room;
+
 class User
 {
 	private:
