@@ -9,6 +9,7 @@
 
 
 class Room;
+class Game;
 
 class User
 {
@@ -19,17 +20,22 @@ class User
 		SOCKET _sock;
 	
 	public:
-		User(std::string, SOCKET);
-		void send(std::string);
+		User(std::string username, SOCKET sock);
+
+		void send(std::string msg);
+
 		std::string getUsername();
 		SOCKET getSocket();
 		Room* getRoom();
 		Game* getGame();
-		void setGame(Game*);
+
+		void setGame(Game* gm);
 		void clearGame();
+
 		bool createRoom(int, std::string, int, int, int);
-		bool joinRoom(Room*);
+		bool joinRoom(Room* newRoom);
 		void leaveRoom();
 		int closeRoom();
+
 		bool leaveGame();
 };

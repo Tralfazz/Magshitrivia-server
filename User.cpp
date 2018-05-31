@@ -7,56 +7,68 @@ User::User(std::string username, SOCKET sock)
 
 void User::send(std::string message)
 {
-	Helper::sendData(_sock, message);
+	Helper::sendData(this->_sock, message);
 }
 
 std::string User::getUsername()
 {
-	return _username;
+	return this->_username;
 }
 
 SOCKET User::getSocket()
 {
-	return _sock;
+	return this->_sock;
 }
 
-Room * User::getRoom()
+Room* User::getRoom()
 {
-	return _currRoom;
+	return this->_currRoom;
 }
 
-Game * User::getGame()
+Game* User::getGame()
 {
-	return _currGame;
+	return this->_currGame;
 }
 
-void User::setGame(Game * gm)
+void User::setGame(Game* gm)
 {
-	_currGame = gm;
-	_currRoom = nullptr;
+	this->_currGame = gm;
+	this->_currRoom = nullptr;
 }
 
 void User::clearGame()
 {
-	_currGame = nullptr;
-}
+	this->_currGame = nullptr;
+}	
 
 bool User::createRoom(int, std::string, int, int, int)
 {
 	return false;
+
+	this->closeRoom();
+	//this->_currRoom = new Room(int , this )
+
 	//if (_currRoom)
 	//	// msg code 114
 	//else
 	//	Protocol::Response::;//msg code 114
 }
 
-bool User::joinRoom(Room * newRoom)
+bool User::joinRoom(Room* newRoom)
 {
+	if (this->_currGame != nullptr)
+	{
+		this->_currRoom = newRoom;
+		return true;
+	}
+
+
 	return false;
 }
 
 void User::leaveRoom()
 {
+
 }
 
 int User::closeRoom()

@@ -19,15 +19,15 @@ class Room
 		int _id;
 	
 		std::string getUsersAsString(std::vector<User*>, User*);
-		void sendMessage(std::string);
-		void sendMessage(User*, std::string);
+		void sendMessage(std::string msg);
+		void sendMessage(User* user, std::string msg);
 
 
 	public:
 		Room(int, User*, std::string, int, int, int);
-		bool joinRoom(User*);
-		void leaveRoom(User*);
-		int closeRoom(User*);
+		bool joinRoom(User* user);
+		void leaveRoom(User* user);
+		int closeRoom(User* user);
 		std::vector<User*> getUsers();
 		std::string getUsersListMesasage();
 		int getQuestionsNo();
