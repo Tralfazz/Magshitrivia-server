@@ -36,7 +36,7 @@
     <ClCompile Include="WSAInitializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Room.cpp">
+    <ClCompile Include="Validator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="User.cpp">

@@ -13,6 +13,7 @@
 #include "RecievedMessage.h"
 #include "Protocol.h"
 #include "Helper.h"
+#include "Validator.h"
 
 
 class TriviaServer
@@ -33,30 +34,30 @@ class TriviaServer
 		void accept();
 		
 		void clientHandler(SOCKET clientSock);
-		void safeDeleteUser(RecievedMessage*);
+		void safeDeleteUser(RecievedMessage* msg);
 
-		User* handleSignin();
-		bool hanleSignUp();
-		void handleSignOut();
+		User* handleSignin(RecievedMessage* msg);
+		bool handleSignUp(RecievedMessage* msg);
+		void handleSignOut(RecievedMessage*);
 
-		void handleLeaveGame(RecievedMessage*);
-		void handleStartGame(RecievedMessage*);
-		void handlePlayerAnswer(RecievedMessage*);
+		void handleLeaveGame(RecievedMessage* msg);
+		void handleStartGame(RecievedMessage* msg);
+		void handlePlayerAnswer(RecievedMessage* msg);
 
-		bool handleCreateRoom(RecievedMessage*);
-		bool handleCloseRoom(RecievedMessage*);
-		bool handleJoinRoom(RecievedMessage*);
-		bool handleLeaveRoom(RecievedMessage*);
-		void handleGetUserInRoom(RecievedMessage*);
-		void handleGetRooms(RecievedMessage*);
+		bool handleCreateRoom(RecievedMessage* msg);
+		bool handleCloseRoom(RecievedMessage* msg);
+		bool handleJoinRoom(RecievedMessage* msg);
+		bool handleLeaveRoom(RecievedMessage* msg);
+		void handleGetUserInRoom(RecievedMessage* msg);
+		void handleGetRooms(RecievedMessage* msg);
 
 
-		void handleGetBestScores(RecievedMessage*);
-		void handleGetPersonalStatus(RecievedMessage*);
+		void handleGetBestScores(RecievedMessage* msg);
+		void handleGetPersonalStatus(RecievedMessage* msg);
 
 		void handleRecievedMessages();
-		void addRecievedMessage(RecievedMessage*);
-		RecievedMessage* buildReciveMessage(SOCKET, int);
+		void addRecievedMessage(RecievedMessage* msg);
+		RecievedMessage* buildReciveMessage(SOCKET sc, int msgCode);
 
 
 		User* getUserByName(std::string name);

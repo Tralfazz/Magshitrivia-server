@@ -123,6 +123,7 @@
     <ClCompile Include="sqlite3.c" />
     <ClCompile Include="TriviaServer.cpp" />
     <ClCompile Include="User.cpp" />
+    <ClCompile Include="Validator.cpp" />
     <ClCompile Include="WSAInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>
