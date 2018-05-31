@@ -2,8 +2,10 @@
 
 #include <WinSock2.h>
 #include <string>
+#include "Helper.h"
 #include "Room.h"
 #include "Game.h"
+#include "Protocol.h"
 
 
 class User
@@ -22,10 +24,10 @@ class User
 		Room* getRoom();
 		Game* getGame();
 		void setGame(Game*);
-		void clearRoom();
+		void clearGame();
 		bool createRoom(int, std::string, int, int, int);
 		bool joinRoom(Room*);
 		void leaveRoom();
-		int closeRomm();
+		int closeRoom();
 		bool leaveGame();
 };
