@@ -35,7 +35,7 @@ namespace Protocol
 	};	
 
 	
-
+	//TODO add consts for success and failure 
 	class Response 
 	{
 		public:

@@ -100,6 +100,8 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 void TriviaServer::clientHandler(SOCKET clientSock)
 {
 	int msgCode = Helper::getMessageTypeCode(clientSock);
+	User* currUser = nullptr;
+
 
 	while (msgCode != Protocol::Request::EXIT_APP && msgCode != 0)
 	{
@@ -108,7 +110,7 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 		switch (msgCode)
 		{
 			case Protocol::Request::SIGN_IN:
-				this->handleSignin(msg); //assign to user object
+				currUser = this->handleSignin(msg); //assign to user object
 				TRACE("Client requested sign in")
 				break;
 
@@ -118,7 +120,10 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 				break;
 
 			case Protocol::Request::SIGN_UP:
-				this->handleSignUp(msg); //returns bool
+				if (this->handleSignUp(msg))
+				{
+					//Helper::sendData(clientSock, std::to_string(Protocol::Response::SIGN_UP_SUCC));
+				}
 				TRACE("Client requested sign up")
 				break;
 
@@ -213,10 +218,7 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 	if (!Validator::isPasswordValid(password)) return false; //send 1041
 
 	//TODO check if user exists in the db and add it if not
-
-	//this->_connectedUsers.
-
-	return false;
+	return true;
 }
 
 
@@ -296,6 +298,8 @@ void TriviaServer::addRecievedMessage(RecievedMessage* msg)
 
 
 
+///////---------------------------------- Getters ----------------------------------///////
+
 
 Room* TriviaServer::getRoomById(int id)
 {
@@ -312,7 +316,6 @@ User* TriviaServer::getUserByName(std::string name)
 	//auto usrIt = std::find(std::begin(this->_roomList), std::end(this->_roomList), name);
 	//return (usrIt != this->_roomList.end()) ? usrIt->second : nullptr;
 }
-
 
 
 User* TriviaServer::getUserBySocket(SOCKET sock)
