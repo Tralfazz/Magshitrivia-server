@@ -89,11 +89,104 @@ void TriviaServer::server()
 
 RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 {
-	throw std::exception("Not implemented yet!");
-	//int msgCode = Helper::getMessageTypeCode(sc);
-	//std::string username = Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2));
-	//
-	//return new RecievedMessage(sc, msgCode);
+	std::vector<std::string> msgValues;
+	
+
+	switch (msgCode)
+	{
+		case Protocol::Request::SIGN_IN:
+			msgValues =
+			{	Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //username
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)) //password 
+			};
+			
+			return new RecievedMessage(sc, msgCode, msgValues);
+
+
+		case Protocol::Request::SIGN_OUT:
+			return new RecievedMessage(sc, msgCode);
+			
+
+		case Protocol::Request::SIGN_UP:
+			msgValues =
+			{
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //username
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //password
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //email 
+			};
+
+			return new RecievedMessage(sc, msgCode, msgValues);
+
+
+		case Protocol::Request::EXISTING_ROOMS:
+			return new RecievedMessage(sc, msgCode);
+			
+
+		case Protocol::Request::USERS_FROM_ROOM:
+			msgValues =
+			{
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 4)), //roomID 
+			};
+
+			return new RecievedMessage(sc, msgCode, msgValues);
+
+
+		case Protocol::Request::JOIN_ROOM:
+			msgValues =
+			{
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 4)), //roomID 
+			};
+
+			return new RecievedMessage(sc, msgCode, msgValues);
+
+
+		case Protocol::Request::LEAVE_ROOM:
+			return new RecievedMessage(sc, msgCode);
+			
+
+		case Protocol::Request::CREATE_NEW_ROOM:
+			msgValues =
+			{
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //room-rame
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 1)), //number of players
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //number of questions
+			};
+
+			return new RecievedMessage(sc, msgCode, msgValues);
+
+
+		case Protocol::Request::CLOSE_ROOM:
+			return new RecievedMessage(sc, msgCode);
+
+
+		case Protocol::Request::BEGIN_GAME:
+			return new RecievedMessage(sc, msgCode);
+
+
+		case Protocol::Request::GAME_CLIENT_ANSWER:			
+			msgValues = 
+			{
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 1)), //answer number
+				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2))  //time in seconds
+			};
+
+			return new RecievedMessage(sc, msgCode, msgValues);
+
+
+		case Protocol::Request::LEAVE_GAME:
+			return new RecievedMessage(sc, msgCode);
+
+
+		case Protocol::Request::BEST_SCORES:
+			return new RecievedMessage(sc, msgCode);
+
+
+		case Protocol::Request::PERSONAL_MODE:
+			return new RecievedMessage(sc, msgCode);
+
+		case Protocol::Request::EXIT_APP:
+			return new RecievedMessage(sc, msgCode);
+	}
 }
 
 
@@ -121,6 +214,7 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 				break;
 
 			case Protocol::Request::SIGN_UP:
+
 				if (this->handleSignUp(msg))
 				{
 					//Helper::sendData(clientSock, std::to_string(Protocol::Response::SIGN_UP_SUCC));
@@ -184,7 +278,7 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 				break;
 		}
 
-		Helper::sendData(clientSock, "U sent me: " + std::to_string(msgCode));
+		
 		msgCode = Helper::getMessageTypeCode(clientSock);
 
 		delete msg;
@@ -205,26 +299,52 @@ void TriviaServer::safeDeleteUser(RecievedMessage * msg)
 
 User* TriviaServer::handleSignin(RecievedMessage* msg)
 {
+	std::mutex mtx;
+
+	mtx.lock();
+
+
+
+	mtx.unlock();
+
+
 	return nullptr;
 }
 
 
 bool TriviaServer::handleSignUp(RecievedMessage* msg)
 {
-	std::string username = msg->getUser()->getUsername();
-	std::string password = msg->getValues()[0];
-	std::string email = msg->getValues()[1];
+	std::string username = msg->getValues()[0];
+	std::string password = msg->getValues()[1];
+	std::string email = msg->getValues()[2];
 
-	if (!Validator::isUsernameValid(username)) return false; //send 1043
-	if (!Validator::isPasswordValid(password)) return false; //send 1041
+	if (!Validator::isUsernameValid(username))
+	{
+		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "3");
+		return false; //send 1043
+	}
+		
+	if (!Validator::isPasswordValid(password))
+	{
+		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "1");
+		return false; //send 1041
+	}
+
+	//this->_connectedUsers.insert(new User())
+
+	User* usr = new User(username, msg->getSock());
+	msg->setUser(usr);
 
 	//TODO check if user exists in the db and add it if not
+
+	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "0"); //success
 	return true;
 }
 
 
 void TriviaServer::handleSignOut(RecievedMessage* msg)
 {
+
 }
 
 

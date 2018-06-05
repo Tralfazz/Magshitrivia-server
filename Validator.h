@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <regex>
 
 
 static class Validator

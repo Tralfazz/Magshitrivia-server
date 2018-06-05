@@ -1,6 +1,3 @@
-#include <regex>
-#include <string>
-
 #include "Validator.h"
 
 
@@ -19,7 +16,7 @@
 */
 bool Validator::isPasswordValid(std::string& password)
 {
-	std::regex passwordPattern("^(?=.[A-Z])(?=.[a-z])(?=.*[1-9])\S+$");
+	std::regex passwordPattern(R"(^(?=.[A-Z])(?=.[a-z])(?=.*[1-9])\S+$)");
 	return std::regex_match(password, passwordPattern);
 }
 
@@ -37,6 +34,6 @@ bool Validator::isPasswordValid(std::string& password)
 */
 bool Validator::isUsernameValid(std::string& username)
 {
-	std::regex usernamePattern("^[a-zA-Z][\w]+$");
+	std::regex usernamePattern(R"(^[a-zA-Z][\w]+$)");
 	return std::regex_match(username, usernamePattern);
 }
