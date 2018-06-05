@@ -214,13 +214,10 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 				break;
 
 			case Protocol::Request::SIGN_UP:
-
-				if (this->handleSignUp(msg))
-				{
-					//Helper::sendData(clientSock, std::to_string(Protocol::Response::SIGN_UP_SUCC));
-				}
+				if(this->handleSignUp(msg)) currUser = msg->getUser();
 				TRACE("Client requested sign up")
 				break;
+
 
 			case Protocol::Request::EXISTING_ROOMS:
 				this->handleGetRooms(msg);
@@ -279,8 +276,13 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 		}
 
 		
-		msgCode = Helper::getMessageTypeCode(clientSock);
+		if (currUser)
+		{
 
+			this->_connectedUsers[clientSock] = currUser;
+		}
+
+		msgCode = Helper::getMessageTypeCode(clientSock);
 		delete msg;
 	}
 

@@ -16,7 +16,7 @@
 */
 bool Validator::isPasswordValid(std::string& password)
 {
-	std::regex passwordPattern(R"(^(?=.[A-Z])(?=.[a-z])(?=.*[1-9])\S+$)");
+	std::regex passwordPattern(R"((?=.*[A-Z])(?=.*[a-z])(?=.*\d)\S+)");
 	return std::regex_match(password, passwordPattern);
 }
 
