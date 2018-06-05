@@ -7,12 +7,14 @@
 #include "DataBase.h"
 
 
+class User;
+
 class Game
 {
 	private:
 
 		std::vector<Question*> _questions;
-		//std::vector<User*> _users;
+		std::vector<User*> _users;
 		int _questions_no;
 		int _currQuestionIndex;
 		DataBase& _db;
@@ -26,12 +28,12 @@ class Game
 
 	public:
 
-		//Game(const std::vector<User*>& users , int , DataBase&);
+		Game(const std::vector<User*>& users , int questionsNo, DataBase& db);
 		~Game();
 		void sendFirstQuestion();
 		void handleFinishGame();
 		bool handleNextTurn();
-		//bool handleAnswerFromUser(User*, int, int);
-		//bool leaveGame(User*);
+		bool handleAnswerFromUser(User*, int, int);
+		bool leaveGame(User*);
 		int getID();
 };
