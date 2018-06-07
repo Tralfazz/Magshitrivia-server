@@ -16,18 +16,34 @@
 #include "Validator.h"
 
 
+//tmp user-struct
+
+typedef	struct tmp_user
+{
+	User* _user;
+	std::string _password;
+
+	tmp_user(User* user , std::string password) : _user(user) , _password(password) { }
+
+} tmp_user;
+
+
+
 class TriviaServer
 {
 	private:
 		SOCKET _socket;
 		std::map<SOCKET, User*> _connectedUsers;
-		DataBase _db;
+		//DataBase _db;
 		std::map<int, Room*> _roomList;
 		
 		std::mutex _mtxRecievedMessages;
 		std::queue<RecievedMessage*> _queRcvMessages;
 
 		static int _roomIdSequence;
+
+		//tmp
+		std::vector<tmp_user> _tmp_db;
 
 		
 		void bindAndListen();

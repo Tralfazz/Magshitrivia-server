@@ -301,14 +301,37 @@ void TriviaServer::safeDeleteUser(RecievedMessage * msg)
 
 User* TriviaServer::handleSignin(RecievedMessage* msg)
 {
-	std::mutex mtx;
+	std::string username = msg->getValues()[0];
+	std::string password = msg->getValues()[1];
 
-	mtx.lock();
+	std::mutex m;
+	std::unique_lock<std::mutex> unique_lock(m);
+	std::condition_variable cv;
+	
+
+	User usr(username, msg->getSock());
+	tmp_user tmp_usr = { &usr , password };
 
 
+	//cv.wait(unique_lock);
 
-	mtx.unlock();
 
+	for (tmp_user& u : this->_tmp_db)
+	{
+		if ((u._user->getUsername() == tmp_usr._user->getUsername()) && (u._password == tmp_usr._password))
+		{
+			//TODO check if user is already connected
+
+			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0"); //Successz
+			return u._user;
+		}
+	}
+
+
+	//unique_lock.unlock();
+	//cv.notify_one();
+
+	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "1"); //Wrong details
 
 	return nullptr;
 }
@@ -338,15 +361,19 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 	msg->setUser(usr);
 
 	//TODO check if user exists in the db and add it if not
+	this->_tmp_db.push_back(tmp_user(usr , password));
+
 
 	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "0"); //success
 	return true;
 }
 
 
+
 void TriviaServer::handleSignOut(RecievedMessage* msg)
 {
-
+	if (this->_connectedUsers[msg->getSock()])
+		delete this->_connectedUsers[msg->getSock()];
 }
 
 
