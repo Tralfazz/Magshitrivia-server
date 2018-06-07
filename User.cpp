@@ -56,14 +56,19 @@ bool User::createRoom(int, std::string, int, int, int)
 
 bool User::joinRoom(Room* newRoom)
 {
-	if (this->_currGame != nullptr)
+	if (!this->getRoom && newRoom)
 	{
-		this->_currRoom = newRoom;
-		return true;
+		if (newRoom->joinRoom(this))
+		{
+			this->_currRoom = newRoom;
+		}
+		else
+		{
+			return false;
+		}
 	}
-
-
-	return false;
+	else
+		return false;
 }
 
 void User::leaveRoom()

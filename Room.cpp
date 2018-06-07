@@ -24,7 +24,7 @@ std::string Room::getUsersAsString(std::vector<User*> usersList, User* excludeUs
 	{
 		if (user != excludeUser)
 		{
-			s += (user->getUsername() + ",");
+			s += (user->getUsername() + ", ");
 		}
 	}
 	s += "\n";
@@ -33,39 +33,56 @@ std::string Room::getUsersAsString(std::vector<User*> usersList, User* excludeUs
 
 
 /*
-	Sends a message to all users in the room
+Sends a message to all users in the room
 
-	@param msg the message to send
+@param msg the message to send
 */
 void Room::sendMessage(std::string msg)
 {
-	for (User* u : this->_users)
-	{
-		Helper::sendData(u->getSocket(), msg);
-	}
+	sendMessage(nullptr, msg);
 }
 
 
 /*
-	Sends a message to a specific user
+Sends a message to all users in the room excluding the sent user
 
-	@param user the user to send the message to
-	@param msg the message to send
+@param msg the message to send
+@param excludeUser
 */
-void Room::sendMessage(User* user, std::string msg)
+void Room::sendMessage(User* excludeUser, std::string msg)
 {
-	Helper::sendData(user->getSocket(), msg);
+	for (User* u : this->_users)
+	{
+		if (u != excludeUser)
+		{
+			Helper::sendData(u->getSocket(), msg);
+		}		
+	}
 }
-
 
 bool Room::joinRoom(User* user)
 {
-	return false;
+	if (_users.size == _maxUsers)
+	{
+		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "1"); // failed - room is full
+		return false;
+	}
+	else
+	{
+		_users.push_back(user);
+		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "0"); // success
+		sendMessage(user, getUsersListMesasage());
+		return true;
+	}
 }
 
 
 void Room::leaveRoom(User* user)
 {
+	if ()
+	{
+		
+	}
 }
 
 
@@ -86,7 +103,17 @@ std::vector<User*> Room::getUsers()
 
 std::string Room::getUsersListMesasage()
 {
-	return std::string();
+	std::string strUsers;
+	std::string tempUname;
+	for(auto usr : _users)
+	{
+		tempUname = usr->getUsername;
+		strUsers += tempUname.length();
+		strUsers += tempUname;
+	}
+
+	return std::to_string(Protocol::Response::USERS_FROM_ROOM + 
+		+ this->_users.size + strUsers);
 }
 
 
