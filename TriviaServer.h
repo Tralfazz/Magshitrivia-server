@@ -40,7 +40,7 @@ class TriviaServer
 		std::mutex _mtxRecievedMessages;
 		std::queue<RecievedMessage*> _queRcvMessages;
 
-		static int _roomIdSequence;
+		static int _roomIdSequence; //roomID counter
 
 		//tmp
 		std::vector<tmp_user> _tmp_db;

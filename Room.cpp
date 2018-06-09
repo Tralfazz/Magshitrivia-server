@@ -62,7 +62,7 @@ void Room::sendMessage(User* excludeUser, std::string msg)
 
 bool Room::joinRoom(User* user)
 {
-	if (_users.size == _maxUsers)
+	if (_users.size() == _maxUsers)
 	{
 		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "1"); // failed - room is full
 		return false;
@@ -79,10 +79,6 @@ bool Room::joinRoom(User* user)
 
 void Room::leaveRoom(User* user)
 {
-	if ()
-	{
-		
-	}
 }
 
 
@@ -105,15 +101,16 @@ std::string Room::getUsersListMesasage()
 {
 	std::string strUsers;
 	std::string tempUname;
+
 	for(auto usr : _users)
 	{
-		tempUname = usr->getUsername;
+		tempUname = usr->getUsername();
 		strUsers += tempUname.length();
 		strUsers += tempUname;
 	}
 
 	return std::to_string(Protocol::Response::USERS_FROM_ROOM + 
-		+ this->_users.size + strUsers);
+		+ this->_users.size()) + strUsers;
 }
 
 
