@@ -32,12 +32,10 @@ class User
 		void setGame(Game* gm);
 		void clearGame();
 
-		bool createRoom(int, std::string, int, int, int);
+		bool createRoom(int roomId, std::string roomName, int maxUsers, int questionsNo, int questionTime);
 		bool joinRoom(Room* newRoom);
 		void leaveRoom();
 		int closeRoom();
 		bool leaveGame();
 		void clearRoom();
-
-		bool leaveGame();
 };

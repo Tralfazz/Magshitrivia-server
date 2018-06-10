@@ -41,22 +41,27 @@ void User::clearGame()
 	this->_currGame = nullptr;
 }	
 
-bool User::createRoom(int, std::string, int, int, int)
+bool User::createRoom(int roomId, std::string roomName, int maxUsers, int questionsNo, int questionTime)
 {
-	return false;
+	if (!this->_currRoom)
+	{
+		this->_currRoom = new Room(roomId, this, roomName, maxUsers, questionsNo, questionTime);
+		Helper::sendData(this->_sock, std::to_string(Protocol::Response::CREATE_NEW_ROOM) + "0"); //success
 
-	this->closeRoom();
-	//this->_currRoom = new Room(int , this )
+		return true;
+	}
+	else
+	{
+		Helper::sendData(this->_sock, std::to_string(Protocol::Response::CREATE_NEW_ROOM) + "1"); //fail
+		//send faliure message (from here??)
 
-	//if (_currRoom)
-	//	// msg code 114
-	//else
-	//	Protocol::Response::;//msg code 114
+		return false;
+	}
 }
 
 bool User::joinRoom(Room* newRoom)
 {
-	if (!this->getRoom && newRoom)
+	if (!this->getRoom() && newRoom)
 	{
 		if (newRoom->joinRoom(this))
 		{

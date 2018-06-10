@@ -4,7 +4,7 @@
 #include <regex>
 
 
-static class Validator
+class Validator
 {
 	public:
 		static bool isPasswordValid(std::string& password);

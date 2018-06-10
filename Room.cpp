@@ -132,6 +132,7 @@ std::string Room::getUsersListMesasage()
 {
 	std::string strUsers;
 	std::string tempUname;
+
 	for(auto usr : _users)
 	{
 		tempUname = usr->getUsername();

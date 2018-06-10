@@ -41,11 +41,11 @@ User* RecievedMessage::getUser()
 */
 void RecievedMessage::setUser(User* user)
 {
-	if (user != nullptr)
-	{
+	//if (user != nullptr)
+	//{
 		this->_user = user;
-	}
-	else throw std::invalid_argument("Cannot set user to null");
+	//}
+	//else throw std::invalid_argument("Cannot set user to null");
 }
 
 

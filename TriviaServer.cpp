@@ -5,6 +5,7 @@
 
 ///////---------------------------------- Server methods ----------------------------------///////
 
+int TriviaServer::_roomIdSequence = 0;
 
 
 TriviaServer::TriviaServer()
@@ -16,7 +17,6 @@ TriviaServer::TriviaServer()
 	{
 		throw std::exception("could not create socket");
 	}
-
 }
 
 
@@ -148,8 +148,9 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 			msgValues =
 			{
 				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //room-rame
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 1)), //number of players
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2)), //number of questions
+				Helper::getStringPartFromSocket(sc, 1), //number of players
+				Helper::getStringPartFromSocket(sc, 2), //number of questions
+				Helper::getStringPartFromSocket(sc, 2) //time to answer every question (in seconds)
 			};
 
 			return new RecievedMessage(sc, msgCode, msgValues);
@@ -195,16 +196,20 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 {
 	int msgCode = Helper::getMessageTypeCode(clientSock);
 	User* currUser = nullptr;
+	RecievedMessage* msg = nullptr;
 
 
 	while (msgCode != Protocol::Request::EXIT_APP && msgCode != 0)
 	{
-		RecievedMessage* msg = this->buildReciveMessage(clientSock, msgCode);
+		msg = this->buildReciveMessage(clientSock, msgCode);
+		msg->setUser(currUser);
 
 		switch (msgCode)
 		{
 			case Protocol::Request::SIGN_IN:
 				currUser = this->handleSignin(msg); //assign to user object
+				if (currUser) this->_connectedUsers[clientSock] = currUser;
+
 				TRACE("Client requested sign in")
 				break;
 
@@ -276,22 +281,25 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 		}
 
 		
-		if (currUser)
-		{
-
-			this->_connectedUsers[clientSock] = currUser;
-		}
-
-		msgCode = Helper::getMessageTypeCode(clientSock);
 		delete msg;
+		msgCode = Helper::getMessageTypeCode(clientSock);
 	}
 
-	::closesocket(clientSock);
+	this->safeDeleteUser(msg);
 }
 
 
-void TriviaServer::safeDeleteUser(RecievedMessage * msg)
+void TriviaServer::safeDeleteUser(RecievedMessage* msg)
 {
+	try 
+	{
+		this->handleSignOut(msg);
+		::closesocket(msg->getSock());
+	}
+	catch (std::exception& e)
+	{
+
+	}		
 }
 
 
@@ -299,21 +307,20 @@ void TriviaServer::safeDeleteUser(RecievedMessage * msg)
 ///////---------------------------------- Handle methods ----------------------------------///////
 
 
+
+/*
+ *	This method handles with the sign in request of the user
+ *	
+ *	@param msg the message which 
+ *	@return if the sign in was successful then pointer to the user else null  
+*/
 User* TriviaServer::handleSignin(RecievedMessage* msg)
 {
 	std::string username = msg->getValues()[0];
 	std::string password = msg->getValues()[1];
 
-	std::mutex m;
-	std::unique_lock<std::mutex> unique_lock(m);
-	std::condition_variable cv;
-	
-
 	User usr(username, msg->getSock());
 	tmp_user tmp_usr = { &usr , password };
-
-
-	//cv.wait(unique_lock);
 
 
 	for (tmp_user& u : this->_tmp_db)
@@ -327,16 +334,15 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 		}
 	}
 
-
-	//unique_lock.unlock();
-	//cv.notify_one();
-
+	
 	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "1"); //Wrong details
-
 	return nullptr;
 }
 
 
+
+/*
+*/
 bool TriviaServer::handleSignUp(RecievedMessage* msg)
 {
 	std::string username = msg->getValues()[0];
@@ -377,29 +383,75 @@ void TriviaServer::handleSignOut(RecievedMessage* msg)
 }
 
 
+
 void TriviaServer::handleLeaveGame(RecievedMessage* msg)
 {
+	User* usr = msg->getUser();
+
+	if (usr->leaveGame())
+	{
+		delete usr->getGame();
+	}
 }
 
 
 void TriviaServer::handleStartGame(RecievedMessage* msg)
 {
+	User* usr = msg->getUser();
 }
+
 
 
 void TriviaServer::handlePlayerAnswer(RecievedMessage* msg)
 {
+	User* currUser = msg->getUser();
+	Game* game = currUser->getGame();
+
+	int ansNum = std::stoi(msg->getValues()[0]);
+	int timeInSeconds = std::stoi(msg->getValues()[1]);
+
+	if (game)
+	{
+		game->handleAnswerFromUser(currUser, ansNum, timeInSeconds);
+	}
+	else
+	{
+		//TODO delete game from memory (but its already null?!?!?)
+	}
 }
 
 
 bool TriviaServer::handleCreateRoom(RecievedMessage* msg)
 {
+	User* usr = msg->getUser();
+
+	if (usr)
+	{
+		std::string roomName = msg->getValues()[0];
+		int numOfPlayers = std::stoi(msg->getValues()[1]);
+		int numOfQuestions = std::stoi(msg->getValues()[2]);
+		int timeInSeconds = std::stoi(msg->getValues()[3]);
+
+		_roomIdSequence++;
+
+		if (usr->createRoom(_roomIdSequence, roomName, numOfPlayers, numOfQuestions, timeInSeconds))
+		{
+			this->_roomList[_roomIdSequence] = usr->getRoom();
+			return true;
+		}
+	}
+
 	return false;
 }
 
 
 bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
 {
+	User* usr = msg->getUser();
+	Room* room = usr->getRoom();
+
+
+	throw std::exception("not implemeted");
 	return false;
 }
 
@@ -426,7 +478,7 @@ void TriviaServer::handleGetRooms(RecievedMessage* msg)
 }
 
 
-void TriviaServer::handleGetBestScores(RecievedMessage* msg)
+void TriviaServer::handleGetBestScores(RecievedMessage* msg) 
 {
 }
 
@@ -453,23 +505,47 @@ void TriviaServer::addRecievedMessage(RecievedMessage* msg)
 
 Room* TriviaServer::getRoomById(int id)
 {
-	throw std::exception("Method is not implemented");
-	//auto r = std::find(this->_roomList.begin(), this->_roomList.end(), id);
-	//return (r != this->_roomList.end()) ? r->second : nullptr;
+	std::map<int, Room*>::iterator it;
+
+	for (it = this->_roomList.begin(); it != this->_roomList.end(); it++)
+	{
+		if (it->first == id)
+		{
+			return it->second;
+		}
+	}
+
+	return nullptr;
 }
 
 
 User* TriviaServer::getUserByName(std::string name)
 {
-	throw std::exception("Method is not implemented");
-	//TODO get a vector of names and iterate over it
-	//auto usrIt = std::find(std::begin(this->_roomList), std::end(this->_roomList), name);
-	//return (usrIt != this->_roomList.end()) ? usrIt->second : nullptr;
+	std::map<SOCKET, User*>::iterator it;
+
+	for (it = this->_connectedUsers.begin(); it != this->_connectedUsers.end(); it++)
+	{
+		if (it->second->getUsername() == name)
+		{
+			return it->second;
+		}
+	}
+
+	return nullptr;
 }
 
 
 User* TriviaServer::getUserBySocket(SOCKET sock)
 {
-	throw std::exception("Method is not implemented");
-	//auto usrIt = std::find()
+	std::map<SOCKET, User*>::iterator it;
+
+	for (it = this->_connectedUsers.begin(); it != this->_connectedUsers.end(); it++)
+	{
+		if (it->second->getSocket() == sock)
+		{
+			return it->second;
+		}
+	}
+
+	return nullptr;
 }
