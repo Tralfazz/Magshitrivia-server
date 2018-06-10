@@ -51,18 +51,25 @@ Sends a message to all users in the room excluding the sent user
 */
 void Room::sendMessage(User* excludeUser, std::string msg)
 {
-	for (User* u : this->_users)
+	try
 	{
-		if (u != excludeUser)
+		for (User* u : this->_users)
 		{
-			Helper::sendData(u->getSocket(), msg);
-		}		
+			if (u != excludeUser)
+			{
+				Helper::sendData(u->getSocket(), msg);
+			}
+		}
+	}
+	catch (const std::exception& e)
+	{
+		TRACE("%s" , e.what())
 	}
 }
 
 bool Room::joinRoom(User* user)
 {
-	if (_users.size == _maxUsers)
+	if (_users.size() == _maxUsers)
 	{
 		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "1"); // failed - room is full
 		return false;
@@ -79,16 +86,36 @@ bool Room::joinRoom(User* user)
 
 void Room::leaveRoom(User* user)
 {
-	if ()
+	int count = 0;
+	for (auto usr : _users)
 	{
-		
+		if (usr == user)
+		{
+			_users.erase(_users.begin() + count);
+			Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::LEAVE_ROOM) + "0");
+			sendMessage(user, getUsersListMesasage());
+		}
+		count++;
 	}
 }
 
 
 int Room::closeRoom(User* user)
 {
-	return 0;
+	if (user == _admin)
+	{
+		sendMessage(std::to_string(Protocol::Response::CLOSE_ROOM));
+		for (auto usr : _users)
+		{
+			if (usr != _admin)
+			{
+				usr->clearRoom();
+			}
+		}
+		return _id;
+	}
+	else
+		return -1;
 }
 
 
@@ -107,13 +134,13 @@ std::string Room::getUsersListMesasage()
 	std::string tempUname;
 	for(auto usr : _users)
 	{
-		tempUname = usr->getUsername;
+		tempUname = usr->getUsername();
 		strUsers += tempUname.length();
 		strUsers += tempUname;
 	}
 
 	return std::to_string(Protocol::Response::USERS_FROM_ROOM + 
-		+ this->_users.size + strUsers);
+		+ this->_users.size()) + strUsers;
 }
 
 
