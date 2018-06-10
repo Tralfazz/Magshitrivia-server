@@ -30,6 +30,7 @@ class Room
 		int closeRoom(User* user);
 		std::vector<User*> getUsers();
 		std::string getUsersListMesasage();
+		int getQuestionsTime();
 		int getQuestionsNo();
 		int getId();
 		std::string getName();

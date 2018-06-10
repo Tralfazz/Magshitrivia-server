@@ -77,7 +77,7 @@ bool Room::joinRoom(User* user)
 	else
 	{
 		_users.push_back(user);
-		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "0"); // success
+		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "0" + std::to_string(_questionNo) + std::to_string(_questionTime)); // success
 		sendMessage(user, getUsersListMesasage());
 		return true;
 	}
@@ -142,6 +142,11 @@ std::string Room::getUsersListMesasage()
 
 	return std::to_string(Protocol::Response::USERS_FROM_ROOM + 
 		+ this->_users.size()) + strUsers;
+}
+
+int Room::getQuestionsTime()
+{
+	return this->_questionTime;
 }
 
 

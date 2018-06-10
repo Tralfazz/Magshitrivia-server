@@ -46,13 +46,13 @@ bool User::createRoom(int roomId, std::string roomName, int maxUsers, int questi
 	if (!this->_currRoom)
 	{
 		this->_currRoom = new Room(roomId, this, roomName, maxUsers, questionsNo, questionTime);
-		Helper::sendData(this->_sock, std::to_string(Protocol::Response::CREATE_NEW_ROOM) + "0"); //success
+		send(std::to_string(Protocol::Response::CREATE_NEW_ROOM) + "0"); //success
 
 		return true;
 	}
 	else
 	{
-		Helper::sendData(this->_sock, std::to_string(Protocol::Response::CREATE_NEW_ROOM) + "1"); //fail
+		send(std::to_string(Protocol::Response::CREATE_NEW_ROOM) + "1"); //fail
 		//send faliure message (from here??)
 
 		return false;
@@ -66,6 +66,7 @@ bool User::joinRoom(Room* newRoom)
 		if (newRoom->joinRoom(this))
 		{
 			this->_currRoom = newRoom;
+			return true;
 		}
 		else
 		{
@@ -78,15 +79,46 @@ bool User::joinRoom(Room* newRoom)
 
 void User::leaveRoom()
 {
-
+	if (_currRoom)
+	{
+		_currRoom->leaveRoom(this);
+		_currRoom = nullptr;
+	}
 }
 
 int User::closeRoom()
 {
-	return 0;
+	int retId;
+	if(_currRoom)
+	{
+		if(_currRoom->closeRoom(this))
+		{
+			retId = _currRoom->getId();
+			delete _currRoom;
+			_currRoom = nullptr;
+			return retId;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else
+		return -1;
 }
 
 bool User::leaveGame()
 {
+	if (_currGame)
+	{
+		_currGame->leaveGame(this);
+		_currGame = nullptr;
+		return true;
+	}
 	return false;
+}
+
+void User::clearRoom()
+{
+	_currRoom = nullptr;
 }

@@ -298,7 +298,7 @@ void TriviaServer::safeDeleteUser(RecievedMessage* msg)
 	}
 	catch (std::exception& e)
 	{
-
+		TRACE("%s", e.what())
 	}		
 }
 
