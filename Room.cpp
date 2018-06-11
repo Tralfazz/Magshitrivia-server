@@ -69,16 +69,23 @@ void Room::sendMessage(User* excludeUser, std::string msg)
 
 bool Room::joinRoom(User* user)
 {
+	std::stringstream msg;
+	msg << Protocol::Response::JOIN_ROOM;
+
 	if (_users.size() == _maxUsers)
 	{
-		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "1"); // failed - room is full
+		msg << 1; // failure message
+
+		Helper::sendData(user->getSocket(), msg.str()); // failed - room is full
 		return false;
 	}
 	else
 	{
 		_users.push_back(user);
-		Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::JOIN_ROOM) + "0" + std::to_string(_questionNo) + std::to_string(_questionTime)); // success
-		sendMessage(user, getUsersListMesasage());
+		msg << 0 << Helper::getPaddedNumber(_questionNo, 2) << Helper::getPaddedNumber(_questionTime, 2); // success
+
+		Helper::sendData(user->getSocket(), msg.str());
+		sendMessage(user, getUsersListMessage());
 		return true;
 	}
 }
@@ -93,7 +100,7 @@ void Room::leaveRoom(User* user)
 		{
 			_users.erase(_users.begin() + count);
 			Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::LEAVE_ROOM) + "0");
-			sendMessage(user, getUsersListMesasage());
+			sendMessage(user, getUsersListMessage());
 		}
 		count++;
 	}
@@ -128,20 +135,28 @@ std::vector<User*> Room::getUsers()
 }
 
 
-std::string Room::getUsersListMesasage()
-{
-	std::string strUsers;
-	std::string tempUname;
 
-	for(auto usr : _users)
+std::string Room::getUsersListMessage()
+{
+	std::stringstream users;
+	users << Protocol::Response::USERS_FROM_ROOM;
+
+
+	if (!_admin->getRoom()) //or game has started
 	{
-		tempUname = usr->getUsername();
-		strUsers += tempUname.length();
-		strUsers += tempUname;
+		users << 0;
+	}
+	else
+	{
+		users << Helper::getPaddedNumber(this->getUsers().size(), 1);
+
+		for (User* u : this->getUsers())
+		{
+			users << Helper::getPaddedNumber(u->getUsername().length(), 2) << u->getUsername();
+		}
 	}
 
-	return std::to_string(Protocol::Response::USERS_FROM_ROOM + 
-		+ this->_users.size()) + strUsers;
+	return users.str();
 }
 
 int Room::getQuestionsTime()

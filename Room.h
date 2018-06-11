@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "User.h"
 
@@ -29,7 +30,7 @@ class Room
 		void leaveRoom(User* user);
 		int closeRoom(User* user);
 		std::vector<User*> getUsers();
-		std::string getUsersListMesasage();
+		std::string getUsersListMessage();
 		int getQuestionsTime();
 		int getQuestionsNo();
 		int getId();

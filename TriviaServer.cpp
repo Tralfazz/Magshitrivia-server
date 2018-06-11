@@ -134,7 +134,7 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 		case Protocol::Request::JOIN_ROOM:
 			msgValues =
 			{
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 4)), //roomID 
+				Helper::getStringPartFromSocket(sc, 4) //roomID 
 			};
 
 			return new RecievedMessage(sc, msgCode, msgValues);
@@ -498,24 +498,8 @@ bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
 
 void TriviaServer::handleGetUserInRoom(RecievedMessage* msg)
 {
-	std::stringstream users;
 	Room* r = this->getRoomById(std::stoi(msg->getValues()[0]));
-
-	users << Protocol::Response::USERS_FROM_ROOM;
-	
-
-	if (r) //check also if the admin closed the room or the game has started
-	{
-		users << Helper::getPaddedNumber(r->getUsers().size(), 1);
-
-		for (User* u : r->getUsers())
-		{
-			users << Helper::getPaddedNumber(u->getUsername().length(), 2) << u->getUsername();
-		}
-	}
-	else users << 0;
-
-	Helper::sendData(msg->getSock(), users.str());
+	if(r) Helper::sendData(msg->getSock(), r->getUsersListMessage());
 }
 
 
