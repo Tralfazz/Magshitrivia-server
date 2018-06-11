@@ -15,7 +15,7 @@ int main()
 	}
 	catch (std::exception& e)
 	{
-		std::cout << "An exception occoured: " << e.what() << std::endl;
+		TRACE("An exception occoured: %s" , e.what());
 	}
 	
 	return 0;

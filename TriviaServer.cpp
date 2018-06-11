@@ -125,7 +125,7 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 		case Protocol::Request::USERS_FROM_ROOM:
 			msgValues =
 			{
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 4)), //roomID 
+				Helper::getStringPartFromSocket(sc, 4), //roomID 
 			};
 
 			return new RecievedMessage(sc, msgCode, msgValues);
@@ -187,6 +187,9 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 
 		case Protocol::Request::EXIT_APP:
 			return new RecievedMessage(sc, msgCode);
+
+		default:
+			throw std::exception("Could not interpret message type code");
 	}
 }
 
@@ -199,7 +202,7 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 	RecievedMessage* msg = nullptr;
 
 
-	while (msgCode != Protocol::Request::EXIT_APP && msgCode != 0)
+	while (msgCode != Protocol::Request::EXIT_APP || msgCode != 0)
 	{
 		msg = this->buildReciveMessage(clientSock, msgCode);
 		msg->setUser(currUser);
@@ -379,7 +382,7 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 void TriviaServer::handleSignOut(RecievedMessage* msg)
 {
 	if (this->_connectedUsers[msg->getSock()])
-		delete this->_connectedUsers[msg->getSock()];
+		this->_connectedUsers.erase(msg->getSock());
 }
 
 
@@ -449,15 +452,40 @@ bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
 	Room* room = usr->getRoom();
+	int roomId = room->getId();
 
+	if (room)
+	{
+		if (usr->closeRoom() != -1) //successful operation
+		{
+			this->_roomList.erase(roomId);
+			return true;
+		}
+	}
 
-	throw std::exception("not implemeted");
 	return false;
 }
 
 
 bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 {
+	User* usr = msg->getUser();
+
+	if (usr)
+	{
+		int roomId = std::stoi(msg->getValues()[0]);
+		Room* requestedRoom = this->getRoomById(roomId);
+
+		if (requestedRoom)
+		{
+			usr->joinRoom(requestedRoom);
+			return true;
+		}
+		else
+			Helper::sendData(usr->getSocket(), Protocol::Request::JOIN_ROOM + "2"); //room is not found
+		
+	}
+
 	return false;
 }
 
@@ -470,11 +498,44 @@ bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
 
 void TriviaServer::handleGetUserInRoom(RecievedMessage* msg)
 {
+	std::stringstream users;
+	Room* r = this->getRoomById(std::stoi(msg->getValues()[0]));
+
+	users << Protocol::Response::USERS_FROM_ROOM;
+	
+
+	if (r) //check also if the admin closed the room or the game has started
+	{
+		users << Helper::getPaddedNumber(r->getUsers().size(), 1);
+
+		for (User* u : r->getUsers())
+		{
+			users << Helper::getPaddedNumber(u->getUsername().length(), 2) << u->getUsername();
+		}
+	}
+	else users << 0;
+
+	Helper::sendData(msg->getSock(), users.str());
 }
+
 
 
 void TriviaServer::handleGetRooms(RecievedMessage* msg)
 {
+	std::stringstream roomsMsg;
+	roomsMsg << Protocol::Response::EXISTING_ROOMS << Helper::getPaddedNumber(this->_roomList.size() , 4);
+
+
+	for (std::pair<int, Room*> i : this->_roomList)
+	{
+		std::string roomId = Helper::getPaddedNumber(i.first , 4);
+		std::string roomName = i.second->getName();
+		std::string roomStrSize = Helper::getPaddedNumber(roomName.length(), 2);
+
+		roomsMsg << roomId <<  roomStrSize << roomName;
+	}
+
+	Helper::sendData(msg->getSock(), roomsMsg.str());
 }
 
 

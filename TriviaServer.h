@@ -6,6 +6,7 @@
 #include <queue>
 #include <thread>
 #include <algorithm>
+#include <sstream>
 
 #include "User.h"
 #include "DataBase.h"
