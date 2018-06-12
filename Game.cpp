@@ -4,7 +4,18 @@
 Game::Game(const std::vector<User*>& users, int questionsNo, DataBase& db)
 	: _users(users), _questions_no(questionsNo), _db(db)
 {
+	int gameId = this->_db.insertNewGame();
 
+	if (gameId == -1)
+		throw std::exception("could not insert new game to database (Game c'tor)");
+	
+	this->_questions = this->_db.initQuestions(questionsNo);
+	//init results
+
+	for (User*& u : this->_users)
+	{
+		u->setGame(this);
+	}
 }
 
 

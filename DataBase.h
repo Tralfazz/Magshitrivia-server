@@ -23,6 +23,7 @@ class DataBase
 	public:
 
 		DataBase();
+		DataBase(DataBase& other);
 		~DataBase();
 
 		bool isUserExists(std::string user);

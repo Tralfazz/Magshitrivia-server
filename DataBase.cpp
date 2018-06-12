@@ -22,6 +22,12 @@ DataBase::DataBase()
 }
 
 
+DataBase::DataBase(DataBase& other)
+{
+	this->_connection = other._connection;
+}
+
+
 
 DataBase::~DataBase()
 {
