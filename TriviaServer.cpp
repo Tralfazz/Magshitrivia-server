@@ -167,8 +167,8 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 		case Protocol::Request::GAME_CLIENT_ANSWER:			
 			msgValues = 
 			{
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 1)), //answer number
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2))  //time in seconds
+				Helper::getStringPartFromSocket(sc, 1), //answer number
+				Helper::getStringPartFromSocket(sc, 2)  //time in seconds
 			};
 
 			return new RecievedMessage(sc, msgCode, msgValues);
@@ -382,7 +382,13 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 void TriviaServer::handleSignOut(RecievedMessage* msg)
 {
 	if (this->_connectedUsers[msg->getSock()])
+	{
+		this->handleCloseRoom(msg);
+		this->handleLeaveRoom(msg);
+		this->handleLeaveGame(msg);
+
 		this->_connectedUsers.erase(msg->getSock());
+	}
 }
 
 
@@ -452,10 +458,11 @@ bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
 	Room* room = usr->getRoom();
-	int roomId = room->getId();
 
 	if (room)
 	{
+		int roomId = room->getId();
+
 		if (usr->closeRoom() != -1) //successful operation
 		{
 			this->_roomList.erase(roomId);
@@ -492,7 +499,14 @@ bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 
 bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
 {
-	return false;
+	User* usr = msg->getUser();
+	
+	if (!usr) return false;
+	if (!usr->getRoom()) return false;
+
+	usr->leaveRoom();
+
+	return true;
 }
 
 
