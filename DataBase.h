@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include "sqlite3.h"
 #include "Question.h"
@@ -10,6 +11,9 @@
 class DataBase
 {
 	private:
+
+		static const std::string DBNAME;
+		sqlite3* _connection;
 
 		static int callbackCount(void* data, int argc, char** argv, char** cols);
 		static int callbackQuestions(void* data, int argc, char** argv, char** cols);
