@@ -9,12 +9,12 @@ DataBase::DataBase()
 	int rc;
 	std::stringstream errMsg;
 
-	rc = sqlite3_open(DataBase::DBNAME.c_str(), &this->_connection);
+	rc = sqlite3_open(DataBase::DBNAME.c_str(), &_connection);
 
 	if (rc)
 	{
-		errMsg << "Could not open database: " << sqlite3_errmsg(this->_connection);
-		sqlite3_close(this->_connection);
+		errMsg << "Could not open database: " << sqlite3_errmsg(_connection);
+		sqlite3_close(_connection);
 
 
 		throw std::exception(errMsg.str().c_str());
@@ -24,14 +24,14 @@ DataBase::DataBase()
 
 DataBase::DataBase(DataBase& other)
 {
-	this->_connection = other._connection;
+	_connection = other._connection;
 }
 
 
 
 DataBase::~DataBase()
 {
-	sqlite3_close(this->_connection);
+	sqlite3_close(_connection);
 }
 
 
@@ -43,10 +43,10 @@ bool DataBase::isUserExists(std::string user)
 
 	query << "SELECT * FROM t_users WHERE username = " << user << ";";
 
-	if (sqlite3_exec(this->_connection, query.str().c_str(), callbackCount, &rowsAffected, NULL))
+	if (sqlite3_exec(_connection, query.str().c_str(), callbackCount, &rowsAffected, NULL))
 	{
 		std::stringstream errMsg;
-		errMsg << "Could not confirm user from database: " << sqlite3_errmsg(this->_connection);
+		errMsg << "Could not confirm user from database: " << sqlite3_errmsg(_connection);
 
 		throw std::exception(errMsg.str().c_str());
 	}
@@ -62,7 +62,7 @@ bool DataBase::addNewUser(std::string username, std::string password, std::strin
 
 	query << "INSERT INTO t_users(username , password , email) VALUES('" << username << "','" << password << "','" << email << "');";
 
-	return !sqlite3_exec(this->_connection, query.str().c_str(), NULL, &rowsAffected, NULL) ? true : false;
+	return !sqlite3_exec(_connection, query.str().c_str(), NULL, &rowsAffected, NULL) ? true : false;
 }
 
 
@@ -73,10 +73,10 @@ bool DataBase::isUserAndPassMatch(std::string username, std::string password)
 
 	query << "SELECT * FROM t_users WHERE username = '" << username << "' AND password = " << password << ";";
 
-	if (sqlite3_exec(this->_connection, query.str().c_str(), callbackCount, &rowsAffected, NULL))
+	if (sqlite3_exec(_connection, query.str().c_str(), callbackCount, &rowsAffected, NULL))
 	{
 		std::stringstream errMsg;
-		errMsg << "Could not find if username and password match: " << sqlite3_errmsg(this->_connection);
+		errMsg << "Could not find if username and password match: " << sqlite3_errmsg(_connection);
 
 		throw std::exception(errMsg.str().c_str());
 	}
@@ -89,7 +89,15 @@ bool DataBase::isUserAndPassMatch(std::string username, std::string password)
 
 std::vector<Question*> DataBase::initQuestions(int questionsNo)
 {
-	return std::vector<Question*>();
+	std::stringstream query;
+	std::vector<Question*> questions;
+
+	query << "SELECT * FROM t_questions ORDER BY RANDOM() LIMIT " << questionsNo << ";";
+
+	sqlite3_exec(_connection, query.str().c_str(), callbackQuestions, static_cast<void*>(&questions), NULL);
+
+
+	return questions;
 }
 
 
@@ -113,16 +121,16 @@ int DataBase::insertNewGame()
 	const std::string query = "INSERT INTO t_games(status,start_time,end_time) values (0 , NOW , NULL);";
 
 
-	if (sqlite3_exec(this->_connection, query.c_str(), NULL, NULL, NULL))
+	if (sqlite3_exec(_connection, query.c_str(), NULL, NULL, NULL))
 	{
 		std::stringstream errMsg;
-		errMsg << "Could not insert new game to database: " << sqlite3_errmsg(this->_connection);
+		errMsg << "Could not insert new game to database: " << sqlite3_errmsg(_connection);
 
 		throw std::exception(errMsg.str().c_str());
 	}
 
 	
-	return sqlite3_last_insert_rowid(this->_connection);
+	return sqlite3_last_insert_rowid(_connection);
 }
 
 
@@ -132,7 +140,7 @@ bool DataBase::updateGameStatus(int gameId)
 	std::stringstream query;
 	query << "UPDATE TABLE t_games SET status = 1 , end_time = NOW WHERE game_id = " << gameId << ";";
 
-	return sqlite3_exec(this->_connection , query.str().c_str() , NULL , NULL , NULL);
+	return sqlite3_exec(_connection , query.str().c_str() , NULL , NULL , NULL);
 }
 
 
@@ -156,6 +164,18 @@ int DataBase::callbackCount(void* data, int argc, char** argv, char** cols)
 
 int DataBase::callbackQuestions(void* data, int argc, char** argv, char** cols)
 {
+	std::vector<Question*>* vec = static_cast<std::vector<Question*>*>(data);
+	int i = 0;
+	
+
+	for ( i = 0; i < argc; i++)
+	{
+		vec->push_back(new Question(std::atoi(argv[0]), std::string(argv[1]),
+									std::string(argv[2]), std::string(argv[3]), 
+									std::string(argv[4]), std::string(argv[5])));
+	}
+
+
 	return 0;
 }
 

@@ -24,7 +24,11 @@ class Game
 
 		bool insertGameToDB();
 		bool initQuestionsFromDB();
-		void sendQuestionsToAllUsers();
+		void sendQuestionToAllUsers();
+
+		std::string getQuestionMsg(int qId);
+		void sendDataToAllUsers(std::string data);
+
 
 	public:
 
@@ -33,7 +37,7 @@ class Game
 		void sendFirstQuestion();
 		void handleFinishGame();
 		bool handleNextTurn();
-		bool handleAnswerFromUser(User*, int, int);
-		bool leaveGame(User*);
+		bool handleAnswerFromUser(User* user, int answerNo, int time);
+		bool leaveGame(User* currUser);
 		int getID();
 };

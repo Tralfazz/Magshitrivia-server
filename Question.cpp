@@ -18,7 +18,7 @@ Question::Question(int id, std::string q ,std::string a1, std::string a2, std::s
 */
 std::string Question::getQuestion() 
 {
-	return this->_question;
+	return _question;
 }
 
 
@@ -27,7 +27,7 @@ std::string Question::getQuestion()
 */
 std::string* Question::getAnswers()
 {
-	return nullptr;
+	return new std::string[4]{ _answer1 , _answer2 , _answer3 , _answer4 };
 }
 
 
@@ -37,7 +37,7 @@ std::string* Question::getAnswers()
 */
 int Question::getCorrectAnswerIndex()
 {
-	return this->_correctAnswerIndex;
+	return _correctAnswerIndex;
 }
 
 
@@ -46,6 +46,6 @@ int Question::getCorrectAnswerIndex()
 */
 int Question::getId()
 {
-	return this->_id;
+	return _id;
 }
 
