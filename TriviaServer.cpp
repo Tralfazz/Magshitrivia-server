@@ -7,7 +7,6 @@
 
 int TriviaServer::_roomIdSequence = 0;
 
-
 TriviaServer::TriviaServer()
 {
 	//init Database
@@ -74,9 +73,10 @@ void TriviaServer::accept()
 void TriviaServer::server()
 {
 	this->bindAndListen();
-	TRACE("Server is active\nBinded socket and listening on port %d\n" , Protocol::PORT)
+	TRACE("Server is active\nBinded socket and listening on port %d\n", Protocol::PORT)
 
-
+	std::thread(&TriviaServer::handleRecievedMessages, this).detach(); // message queue handler
+	
 	while (true)
 	{
 		this->accept();
@@ -197,98 +197,39 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 
 void TriviaServer::clientHandler(SOCKET clientSock)
 {
-	int msgCode = Helper::getMessageTypeCode(clientSock);
-	User* currUser = nullptr;
 	RecievedMessage* msg = nullptr;
+	User* currUsr = nullptr;
+	std::map<SOCKET, User*>::iterator iterUsr;
 
-
-	while (msgCode != Protocol::Request::EXIT_APP || msgCode != 0)
+	try
 	{
-		msg = this->buildReciveMessage(clientSock, msgCode);
-		msg->setUser(currUser);
+		int msgCode = Helper::getMessageTypeCode(clientSock);
 
-		switch (msgCode)
+		while (msgCode != Protocol::Request::EXIT_APP || msgCode != 0)
 		{
-			case Protocol::Request::SIGN_IN:
-				currUser = this->handleSignin(msg); //assign to user object
-				if (currUser) this->_connectedUsers[clientSock] = currUser;
+			iterUsr = _connectedUsers.find(clientSock);
+			if (iterUsr != _connectedUsers.end())
+			{
+				currUsr = (iterUsr)->second;
+			}
 
-				TRACE("Client requested sign in")
-				break;
+			msg = buildReciveMessage(clientSock, msgCode);
+			msg->setUser(currUsr);
+			addRecievedMessage(msg);
 
-			case Protocol::Request::SIGN_OUT:
-				this->handleSignOut(msg);
-				TRACE("Client requested sign out")
-				break;
-
-			case Protocol::Request::SIGN_UP:
-				if(this->handleSignUp(msg)) currUser = msg->getUser();
-				TRACE("Client requested sign up")
-				break;
-
-
-			case Protocol::Request::EXISTING_ROOMS:
-				this->handleGetRooms(msg);
-				TRACE("Client requested all existing rooms")
-				break;
-
-			case Protocol::Request::USERS_FROM_ROOM:
-				this->handleGetUserInRoom(msg);
-				TRACE("Client requested users from room")
-				break;
-
-			case Protocol::Request::JOIN_ROOM:
-				this->handleJoinRoom(msg); //returns bool
-				TRACE("Client requested to join a room")
-				break;
-
-			case Protocol::Request::LEAVE_ROOM:
-				this->handleLeaveGame(msg); //returns bool
-				TRACE("Client requested to leave a room")
-				break;
-
-			case Protocol::Request::CREATE_NEW_ROOM:
-				this->handleCreateRoom(msg); //returns bool
-				TRACE("Client requested to create new room") 
-				break;
-
-			case Protocol::Request::CLOSE_ROOM: 
-				this->handleCloseRoom(msg); //returns bool
-				TRACE("Client requested to close room") 
-				break;
-
-			case Protocol::Request::BEGIN_GAME:
-				this->handleStartGame(msg);
-				TRACE("Client requested to begin game")
-				break;
-
-			case Protocol::Request::GAME_CLIENT_ANSWER:
-				this->handlePlayerAnswer(msg);
-				TRACE("Client sent an answer to the question")
-				break;
-
-			case Protocol::Request::LEAVE_GAME:
-				this->handleLeaveGame(msg);
-				TRACE("Client requested leave game")
-				break;
-
-			case Protocol::Request::BEST_SCORES:
-				this->handleGetBestScores(msg);
-				TRACE("Client requested best scores")
-				break;
-
-			case Protocol::Request::PERSONAL_MODE:
-				this->handleGetPersonalStatus(msg);
-				TRACE("Client requested personal mode")
-				break;
+			msgCode = Helper::getMessageTypeCode(clientSock);
 		}
-
-		
-		delete msg;
-		msgCode = Helper::getMessageTypeCode(clientSock);
+		msg = buildReciveMessage(clientSock, Protocol::Request::EXIT_APP);
+		msg->setUser(currUsr);
+		addRecievedMessage(msg);
 	}
-
-	this->safeDeleteUser(msg);
+	catch(const std::exception& e)
+	{
+		TRACE("%s", e.what())
+		msg = buildReciveMessage(clientSock, Protocol::Request::EXIT_APP);
+		msg->setUser(currUsr);
+		addRecievedMessage(msg);
+	}
 }
 
 
@@ -325,14 +266,16 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 	User usr(username, msg->getSock());
 	tmp_user tmp_usr = { &usr , password };
 
-
 	for (tmp_user& u : this->_tmp_db)
 	{
 		if ((u._user->getUsername() == tmp_usr._user->getUsername()) && (u._password == tmp_usr._password))
 		{
-			//TODO check if user is already connected
-
+			if (getUserByName(username))
+			{
+				Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "2");//already exists
+			}
 			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0"); //Successz
+			this->_connectedUsers[msg->getSock()] = u._user;
 			return u._user;
 		}
 	}
@@ -415,11 +358,10 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* msg)
 
 	if (game)
 	{
-		game->handleAnswerFromUser(currUser, ansNum, timeInSeconds);
-	}
-	else
-	{
-		//TODO delete game from memory (but its already null?!?!?)
+		if (!game->handleAnswerFromUser(currUser, ansNum, timeInSeconds))
+		{
+			delete game;
+		}
 	}
 }
 
@@ -525,25 +467,133 @@ void TriviaServer::handleGetRooms(RecievedMessage* msg)
 
 void TriviaServer::handleGetBestScores(RecievedMessage* msg) 
 {
+	//TODO
 }
 
 
 void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
 {
+	//TODO
 }
+
+///////----------------------------- Message Queue --------------------------------///////
 
 
 void TriviaServer::handleRecievedMessages()
 {
-}
+	RecievedMessage* msg;
 
+	while (true)
+	{
+		std::unique_lock<std::mutex> lock(_qLock);
+		_qCV.wait(lock);
+
+		while (!_qRcvMessages.empty())
+		{
+			msg = _qRcvMessages.front();
+			_qRcvMessages.pop();
+			lock.unlock();
+
+			try
+			{
+				switch (msg->getMessageCode())
+				{
+				case Protocol::Request::SIGN_IN:
+					this->handleSignin(msg);
+					TRACE("Client requested sign in")
+						break;
+
+				case Protocol::Request::SIGN_OUT:
+					this->handleSignOut(msg);
+					TRACE("Client requested sign out")
+						break;
+
+				case Protocol::Request::SIGN_UP:
+					this->handleSignUp(msg);
+					TRACE("Client requested sign up")
+						break;
+
+
+				case Protocol::Request::EXISTING_ROOMS:
+					this->handleGetRooms(msg);
+					TRACE("Client requested all existing rooms")
+						break;
+
+				case Protocol::Request::USERS_FROM_ROOM:
+					this->handleGetUserInRoom(msg);
+					TRACE("Client requested users from room")
+						break;
+
+				case Protocol::Request::JOIN_ROOM:
+					this->handleJoinRoom(msg); //returns bool
+					TRACE("Client requested to join a room")
+						break;
+
+				case Protocol::Request::LEAVE_ROOM:
+					this->handleLeaveGame(msg); //returns bool
+					TRACE("Client requested to leave a room")
+						break;
+
+				case Protocol::Request::CREATE_NEW_ROOM:
+					this->handleCreateRoom(msg); //returns bool
+					TRACE("Client requested to create new room")
+						break;
+
+				case Protocol::Request::CLOSE_ROOM:
+					this->handleCloseRoom(msg); //returns bool
+					TRACE("Client requested to close room")
+						break;
+
+				case Protocol::Request::BEGIN_GAME:
+					this->handleStartGame(msg);
+					TRACE("Client requested to begin game")
+						break;
+
+				case Protocol::Request::GAME_CLIENT_ANSWER:
+					this->handlePlayerAnswer(msg);
+					TRACE("Client sent an answer to the question")
+						break;
+
+				case Protocol::Request::LEAVE_GAME:
+					this->handleLeaveGame(msg);
+					TRACE("Client requested leave game")
+						break;
+
+				case Protocol::Request::BEST_SCORES:
+					this->handleGetBestScores(msg);
+					TRACE("Client requested best scores")
+						break;
+
+				case Protocol::Request::PERSONAL_MODE:
+					this->handleGetPersonalStatus(msg);
+					TRACE("Client requested personal mode")
+						break;
+				case Protocol::Request::EXIT_APP:
+					this->safeDeleteUser(msg);
+					TRACE("Client requested exit app")
+						break;
+				default:
+					this->safeDeleteUser(msg);
+					TRACE("Unknown message code: %d", msg->getMessageCode())
+						break;
+				}
+			}
+			catch (std::exception& e)
+			{
+				this->safeDeleteUser(msg);
+			}
+			lock.lock();
+		}
+		lock.unlock();
+	}
+}
 
 void TriviaServer::addRecievedMessage(RecievedMessage* msg)
 {
+	std::unique_lock<std::mutex> lock(_qLock);
+	_qRcvMessages.push(msg);
+	_qCV.notify_all();
 }
-
-
-
 
 ///////---------------------------------- Getters ----------------------------------///////
 

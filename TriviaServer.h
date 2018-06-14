@@ -38,8 +38,9 @@ class TriviaServer
 		//DataBase _db;
 		std::map<int, Room*> _roomList;
 		
-		std::mutex _mtxRecievedMessages;
-		std::queue<RecievedMessage*> _queRcvMessages;
+		std::mutex _qLock;
+		std::condition_variable _qCV;
+		std::queue<RecievedMessage*> _qRcvMessages;
 
 		static int _roomIdSequence; //roomID counter
 
