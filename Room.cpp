@@ -33,9 +33,9 @@ std::string Room::getUsersAsString(std::vector<User*> usersList, User* excludeUs
 
 
 /*
-Sends a message to all users in the room
+	Sends a message to all users in the room
 
-@param msg the message to send
+	@param msg the message to send
 */
 void Room::sendMessage(std::string msg)
 {
@@ -66,6 +66,7 @@ void Room::sendMessage(User* excludeUser, std::string msg)
 		TRACE("%s" , e.what())
 	}
 }
+
 
 bool Room::joinRoom(User* user)
 {
@@ -135,7 +136,6 @@ std::vector<User*> Room::getUsers()
 }
 
 
-
 std::string Room::getUsersListMessage()
 {
 	std::stringstream users;
@@ -158,6 +158,7 @@ std::string Room::getUsersListMessage()
 
 	return users.str();
 }
+
 
 int Room::getQuestionsTime()
 {
@@ -189,6 +190,12 @@ int Room::getId()
 std::string Room::getName()
 {
 	return this->_name;
+}
+
+
+bool Room::isAdmin(User* user)
+{
+	return _admin == user;
 }
 
 

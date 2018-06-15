@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-
+#include <ctime>
+#include <cstdlib>
 
 class Question
 {
@@ -17,7 +18,7 @@ class Question
 		std::string _answer4;
 		
 	public:
-		Question(int id, std::string q ,std::string q1 , std::string q2 , std::string q3 , std::string q4);
+		Question(int id, std::string q ,std::string correctAns , std::string ans1 , std::string ans2 , std::string ans3);
 		
 		std::string getQuestion();
 		std::string* getAnswers();

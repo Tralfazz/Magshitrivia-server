@@ -86,7 +86,6 @@ void TriviaServer::server()
 
 
 
-
 RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 {
 	std::vector<std::string> msgValues;
@@ -192,7 +191,6 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 			throw std::exception("Could not interpret message type code");
 	}
 }
-
 
 
 void TriviaServer::clientHandler(SOCKET clientSock)
@@ -326,18 +324,24 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 	tmp_user tmp_usr = { &usr , password };
 
 
-	for (tmp_user& u : this->_tmp_db)
+	if (_db.isUserAndPassMatch(username , password))
 	{
-		if ((u._user->getUsername() == tmp_usr._user->getUsername()) && (u._password == tmp_usr._password))
-		{
-			//TODO check if user is already connected
-
-			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0"); //Successz
-			return u._user;
-		}
+		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0");
+		return new User(username, msg->getSock());
 	}
 
-	
+	//for (tmp_user& u : this->_tmp_db)
+	//{
+	//	if ((u._user->getUsername() == tmp_usr._user->getUsername()) && (u._password == tmp_usr._password))
+	//	{
+	//		//TODO check if user is already connected
+	//
+	//		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0"); //Successz
+	//		return u._user;
+	//	}
+	//}
+
+		
 	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "1"); //Wrong details
 	return nullptr;
 }
@@ -370,11 +374,18 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 	msg->setUser(usr);
 
 	//TODO check if user exists in the db and add it if not
-	this->_tmp_db.push_back(tmp_user(usr , password));
+	//this->_tmp_db.push_back(tmp_user(usr , password));
 
+	if (!_db.isUserExists(username))
+	{
+		_db.addNewUser(username, password, email);
 
-	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "0"); //success
-	return true;
+		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "0"); //success
+		return true;
+	}
+
+	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "2"); //username already exists
+	return false;
 }
 
 
@@ -386,6 +397,7 @@ void TriviaServer::handleSignOut(RecievedMessage* msg)
 		this->handleCloseRoom(msg);
 		this->handleLeaveRoom(msg);
 		this->handleLeaveGame(msg);
+
 
 		this->_connectedUsers.erase(msg->getSock());
 	}
@@ -406,7 +418,37 @@ void TriviaServer::handleLeaveGame(RecievedMessage* msg)
 
 void TriviaServer::handleStartGame(RecievedMessage* msg)
 {
+	//std::stringstream msg;
+
 	User* usr = msg->getUser();
+	Room* room = usr->getRoom();
+
+	//msg << Protocol::Response:
+
+	if (room)
+	{
+		try
+		{
+			Game* newGame = new Game(room->getUsers(), room->getQuestionsNo(), _db);
+			usr->setGame(newGame);
+
+			for (User* u : room->getUsers())
+			{
+				u->setGame(newGame);
+				u->clearRoom();
+			}
+
+			this->_roomList.erase(room->getId());
+			delete room;
+			
+
+			newGame->sendFirstQuestion();			
+		}
+		catch (const std::exception& e)
+		{
+			TRACE("Error in TriviaServer::HandleStartGame: %s" , e.what())
+		}
+	}
 }
 
 

@@ -19,7 +19,9 @@ class Game
 		int _currQuestionIndex;
 		DataBase& _db;
 		std::map<std::string, int> _results;
-		int currentTurnAnswers;
+		int _currentTurnAnswers;
+
+		int _id;
 
 
 		bool insertGameToDB();
@@ -27,6 +29,9 @@ class Game
 		void sendQuestionToAllUsers();
 
 		std::string getQuestionMsg(int qId);
+		std::string getEndGameMsg();
+		std::string getCorrectAnsMsg(bool isCorrect);
+
 		void sendDataToAllUsers(std::string data);
 
 
