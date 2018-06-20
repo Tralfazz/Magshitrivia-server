@@ -19,20 +19,26 @@ class Room
 		std::string _name;
 		int _id;
 	
-		std::string getUsersAsString(std::vector<User*>, User*);
+		std::string getUsersAsString(std::vector<User*> usersList, User* excludeUser);
 		void sendMessage(std::string msg);
 		void sendMessage(User* user, std::string msg);
-
+		
 
 	public:
-		Room(int, User*, std::string, int, int, int);
+
+		Room(int id, User * admin, std::string name, int maxUsers, int questionNo, int questionTime);
+
 		bool joinRoom(User* user);
 		void leaveRoom(User* user);
 		int closeRoom(User* user);
+
 		std::vector<User*> getUsers();
 		std::string getUsersListMessage();
+
 		int getQuestionsTime();
 		int getQuestionsNo();
 		int getId();
 		std::string getName();
+
+		bool isAdmin(User* user);
 };

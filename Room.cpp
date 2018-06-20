@@ -33,9 +33,9 @@ std::string Room::getUsersAsString(std::vector<User*> usersList, User* excludeUs
 
 
 /*
-Sends a message to all users in the room
+	Sends a message to all users in the room
 
-@param msg the message to send
+	@param msg the message to send
 */
 void Room::sendMessage(std::string msg)
 {
@@ -67,6 +67,7 @@ void Room::sendMessage(User* excludeUser, std::string msg)
 	}
 }
 
+
 bool Room::joinRoom(User* user)
 {
 	std::stringstream msg;
@@ -93,16 +94,14 @@ bool Room::joinRoom(User* user)
 
 void Room::leaveRoom(User* user)
 {
-	int count = 0;
-	for (auto usr : _users)
+	std::vector<User*>::iterator it = std::find(_users.begin(), _users.end(), user);
+
+	if (it != _users.end())
 	{
-		if (usr == user)
-		{
-			_users.erase(_users.begin() + count);
-			Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::LEAVE_ROOM) + "0");
-			sendMessage(user, getUsersListMessage());
-		}
-		count++;
+		_users.erase(it);
+
+		user->send(std::to_string(Protocol::Response::LEAVE_ROOM) + "0"); //success
+		this->sendMessage(this->getUsersListMessage());
 	}
 }
 
@@ -135,7 +134,6 @@ std::vector<User*> Room::getUsers()
 }
 
 
-
 std::string Room::getUsersListMessage()
 {
 	std::stringstream users;
@@ -158,6 +156,7 @@ std::string Room::getUsersListMessage()
 
 	return users.str();
 }
+
 
 int Room::getQuestionsTime()
 {
@@ -189,6 +188,12 @@ int Room::getId()
 std::string Room::getName()
 {
 	return this->_name;
+}
+
+
+bool Room::isAdmin(User* user)
+{
+	return _admin == user;
 }
 
 

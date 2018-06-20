@@ -86,7 +86,6 @@ void TriviaServer::server()
 
 
 
-
 RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 {
 	std::vector<std::string> msgValues;
@@ -167,8 +166,8 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 		case Protocol::Request::GAME_CLIENT_ANSWER:			
 			msgValues = 
 			{
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 1)), //answer number
-				Helper::getStringPartFromSocket(sc, Helper::getIntPartFromSocket(sc, 2))  //time in seconds
+				Helper::getStringPartFromSocket(sc, 1), //answer number
+				Helper::getStringPartFromSocket(sc, 2)  //time in seconds
 			};
 
 			return new RecievedMessage(sc, msgCode, msgValues);
@@ -192,7 +191,6 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 			throw std::exception("Could not interpret message type code");
 	}
 }
-
 
 
 void TriviaServer::clientHandler(SOCKET clientSock)
@@ -263,24 +261,22 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 	std::string username = msg->getValues()[0];
 	std::string password = msg->getValues()[1];
 
-	User usr(username, msg->getSock());
-	tmp_user tmp_usr = { &usr , password };
 
-	for (tmp_user& u : this->_tmp_db)
+	if (_db.isUserAndPassMatch(username , password))
 	{
-		if ((u._user->getUsername() == tmp_usr._user->getUsername()) && (u._password == tmp_usr._password))
+		if (this->getUserByName(username))
 		{
-			if (getUserByName(username))
-			{
-				Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "2");//already exists
-			}
-			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0"); //Successz
-			this->_connectedUsers[msg->getSock()] = u._user;
-			return u._user;
+			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "2"); //User is already connected
+			return nullptr;
+		}
+		else
+		{
+			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0");
+			return new User(username, msg->getSock());
 		}
 	}
 
-	
+		
 	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "1"); //Wrong details
 	return nullptr;
 }
@@ -312,12 +308,17 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 	User* usr = new User(username, msg->getSock());
 	msg->setUser(usr);
 
-	//TODO check if user exists in the db and add it if not
-	this->_tmp_db.push_back(tmp_user(usr , password));
 
+	if (!_db.isUserExists(username))
+	{
+		_db.addNewUser(username, password, email);
 
-	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "0"); //success
-	return true;
+		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "0"); //success
+		return true;
+	}
+
+	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_UP) + "2"); //username already exists
+	return false;
 }
 
 
@@ -325,7 +326,14 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 void TriviaServer::handleSignOut(RecievedMessage* msg)
 {
 	if (this->_connectedUsers[msg->getSock()])
+	{
+		this->handleCloseRoom(msg);
+		this->handleLeaveRoom(msg);
+		this->handleLeaveGame(msg);
+
+
 		this->_connectedUsers.erase(msg->getSock());
+	}
 }
 
 
@@ -343,7 +351,37 @@ void TriviaServer::handleLeaveGame(RecievedMessage* msg)
 
 void TriviaServer::handleStartGame(RecievedMessage* msg)
 {
+	//std::stringstream msg;
+
 	User* usr = msg->getUser();
+	Room* room = usr->getRoom();
+
+	//msg << Protocol::Response:
+
+	if (room)
+	{
+		try
+		{
+			Game* newGame = new Game(room->getUsers(), room->getQuestionsNo(), _db);
+			usr->setGame(newGame);
+
+			for (User* u : room->getUsers())
+			{
+				u->setGame(newGame);
+				u->clearRoom();
+			}
+
+			this->_roomList.erase(room->getId());
+			delete room;
+			
+
+			newGame->sendFirstQuestion();			
+		}
+		catch (const std::exception& e)
+		{
+			TRACE("Error in TriviaServer::HandleStartGame: %s" , e.what())
+		}
+	}
 }
 
 
@@ -394,10 +432,11 @@ bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
 	Room* room = usr->getRoom();
-	int roomId = room->getId();
 
 	if (room)
 	{
+		int roomId = room->getId();
+
 		if (usr->closeRoom() != -1) //successful operation
 		{
 			this->_roomList.erase(roomId);
@@ -418,14 +457,7 @@ bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 		int roomId = std::stoi(msg->getValues()[0]);
 		Room* requestedRoom = this->getRoomById(roomId);
 
-		if (requestedRoom)
-		{
-			usr->joinRoom(requestedRoom);
-			return true;
-		}
-		else
-			Helper::sendData(usr->getSocket(), Protocol::Request::JOIN_ROOM + "2"); //room is not found
-		
+		return usr->joinRoom(requestedRoom);
 	}
 
 	return false;
@@ -434,7 +466,14 @@ bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 
 bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
 {
-	return false;
+	User* usr = msg->getUser();
+	
+	if (!usr) return false;
+	if (!usr->getRoom()) return false;
+
+	usr->leaveRoom();
+
+	return true;
 }
 
 

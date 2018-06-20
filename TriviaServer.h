@@ -35,7 +35,7 @@ class TriviaServer
 	private:
 		SOCKET _socket;
 		std::map<SOCKET, User*> _connectedUsers;
-		//DataBase _db;
+		DataBase _db;
 		std::map<int, Room*> _roomList;
 		
 		std::mutex _qLock;
