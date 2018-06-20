@@ -569,7 +569,7 @@ void TriviaServer::handleRecievedMessages()
 						break;
 
 				case Protocol::Request::LEAVE_ROOM:
-					this->handleLeaveGame(msg); //returns bool
+					this->handleLeaveRoom(msg); //returns bool
 					TRACE("Client requested to leave a room")
 						break;
 
