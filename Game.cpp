@@ -30,17 +30,6 @@ Game::~Game()
 }
 
 
-
-bool Game::insertGameToDB()
-{
-	return false;
-}
-
-bool Game::initQuestionsFromDB()
-{
-	return false;
-}
-
 void Game::sendQuestionToAllUsers()
 {
 	this->sendDataToAllUsers(this->getQuestionMsg(_currQuestionIndex));
@@ -82,6 +71,7 @@ std::string Game::getQuestionMsg(int qId)
 
 	return msg.str();
 }
+
 
 std::string Game::getEndGameMsg()
 {
@@ -151,11 +141,13 @@ bool Game::handleNextTurn()
 	{
 		if (_currentTurnAnswers == _users.size()) //if all users answered the question
 		{
+			_currentTurnAnswers = 0;
+			_currQuestionIndex++;
+
 			if (_questions_no == _currQuestionIndex) //if the question is the last one
 				this->handleFinishGame();
 			else
 			{
-				_currQuestionIndex++;
 				this->sendQuestionToAllUsers();
 			}
 		}
@@ -168,25 +160,28 @@ bool Game::handleNextTurn()
 
 bool Game::handleAnswerFromUser(User* user, int answerNo, int time)
 {
-	bool answeredRight = answerNo == _questions[_currQuestionIndex]->getCorrectAnswerIndex(); //if the user answered the right answer
+	bool answeredRight = (answerNo == (_questions[_currQuestionIndex]->getCorrectAnswerIndex() + 1)); //if the user answered the right answer
+	std::string ansText = answerNo == 5 ? "" : _questions[_currQuestionIndex]->getAnswers()[answerNo - 1];
 
-
-	if (answeredRight)
-	{
-		_results[user->getUsername()]++;
-	}
-
-	_db.addAnswerToPlayer(_id,
-						  user->getUsername(),
-						  _currQuestionIndex, 
-						  std::to_string(answerNo) /*if ansNo is 5 then send nothing*/, 
-						  answeredRight /*if the question was correct*/,
-						  time);
 
 	user->send(this->getCorrectAnsMsg(answeredRight)); //if the answer was correct
 
 
-	_currQuestionIndex++;
+	if (answeredRight) _results[user->getUsername()]++;
+	
+
+	_db.addAnswerToPlayer(_id,
+						  user->getUsername(),
+						  _currQuestionIndex, 
+						  ansText /*if ansNo is 5 then send nothing*/, 
+						  answeredRight /*if the question was correct*/,
+						  time);
+
+
+
+	_currentTurnAnswers++;
+
+	this->handleNextTurn();
 
 	return false /*If game has started or finished*/;
 }

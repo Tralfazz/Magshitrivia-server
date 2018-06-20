@@ -7,16 +7,21 @@ std::queue<std::string> Question::getRandomQuestionQueue(std::string correctA, s
 	int currRand;
 	std::queue<std::string> res;
 	std::deque<std::string> temp = { correctA,a1,a2,a3 };
-	for (int i = 0; i < temp.size(); i++)
+	int initialSize = temp.size();
+
+	srand(time(NULL));
+
+	for (int i = 0; i < initialSize; i++)
 	{
-		currRand = rand() % 4;
+		currRand = rand() % temp.size();
 		if (temp[currRand] == correctA)
 		{
-			_correctAnswerIndex = currRand;
+			_correctAnswerIndex = i;
 		}
 		res.push(temp[currRand]);
 		temp.erase(temp.begin() + currRand);
 	}
+
 	return res;
 }
 

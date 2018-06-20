@@ -28,12 +28,12 @@ DataBase::DataBase(DataBase& other)
 }
 
 
-
 DataBase::~DataBase()
 {
 	sqlite3_close(_connection);
 }
  
+
 
 
 bool DataBase::isUserExists(std::string user)
@@ -87,6 +87,7 @@ bool DataBase::isUserAndPassMatch(std::string username, std::string password)
 
 
 
+
 std::vector<Question*> DataBase::initQuestions(int questionsNo)
 {
 	std::stringstream query;
@@ -101,12 +102,10 @@ std::vector<Question*> DataBase::initQuestions(int questionsNo)
 }
 
 
-
 std::vector<std::string> DataBase::getBestScores()
 {
 	return std::vector<std::string>();
 }
-
 
 
 std::vector<std::string> DataBase::getPersonalStatus(std::string username)
@@ -134,7 +133,6 @@ int DataBase::insertNewGame()
 }
 
 
-
 bool DataBase::updateGameStatus(int gameId)
 {
 	std::stringstream query;
@@ -142,7 +140,6 @@ bool DataBase::updateGameStatus(int gameId)
 
 	return sqlite3_exec(_connection , query.str().c_str() , NULL , NULL , NULL);
 }
-
 
 
 bool DataBase::addAnswerToPlayer(int gameId, std::string username, int questionId, std::string answer, bool isCorrect, int answerTime)

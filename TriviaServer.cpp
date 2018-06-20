@@ -320,26 +320,12 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 	std::string username = msg->getValues()[0];
 	std::string password = msg->getValues()[1];
 
-	User usr(username, msg->getSock());
-	tmp_user tmp_usr = { &usr , password };
-
 
 	if (_db.isUserAndPassMatch(username , password))
 	{
 		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0");
 		return new User(username, msg->getSock());
 	}
-
-	//for (tmp_user& u : this->_tmp_db)
-	//{
-	//	if ((u._user->getUsername() == tmp_usr._user->getUsername()) && (u._password == tmp_usr._password))
-	//	{
-	//		//TODO check if user is already connected
-	//
-	//		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0"); //Successz
-	//		return u._user;
-	//	}
-	//}
 
 		
 	Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "1"); //Wrong details
@@ -373,8 +359,6 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 	User* usr = new User(username, msg->getSock());
 	msg->setUser(usr);
 
-	//TODO check if user exists in the db and add it if not
-	//this->_tmp_db.push_back(tmp_user(usr , password));
 
 	if (!_db.isUserExists(username))
 	{
