@@ -24,8 +24,6 @@ class Game
 		int _id;
 
 
-		bool insertGameToDB();
-		bool initQuestionsFromDB();
 		void sendQuestionToAllUsers();
 
 		std::string getQuestionMsg(int qId);

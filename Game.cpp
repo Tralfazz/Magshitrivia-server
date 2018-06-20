@@ -14,6 +14,7 @@ Game::Game(const std::vector<User*>& users, int questionsNo, DataBase& db)
 
 	for (User*& u : _users)
 	{
+		_results[u->getUsername()] = 0;
 		u->setGame(this);
 	}
 }
@@ -77,7 +78,8 @@ std::string Game::getEndGameMsg()
 {
 	std::stringstream msg;
 
-	msg << Protocol::Response::END_GAME;
+	msg << Protocol::Response::END_GAME << Helper::getPaddedNumber(_users.size() , 1);
+
 
 	for (std::pair<std::string,int> i : _results)
 	{
@@ -128,7 +130,12 @@ void Game::handleFinishGame()
 
 	for (User* u : _users)
 	{
-		u->send(endGameMsg);
+		try
+		{
+			u->setGame(nullptr);
+			u->send(endGameMsg);
+		}
+		catch(...){}
 	}
 }
 
@@ -136,7 +143,11 @@ void Game::handleFinishGame()
 bool Game::handleNextTurn()
 {
 	if (_users.empty())
+	{
 		this->handleFinishGame();
+
+		return true; //game has ended
+	}
 	else
 	{
 		if (_currentTurnAnswers == _users.size()) //if all users answered the question
@@ -154,7 +165,7 @@ bool Game::handleNextTurn()
 	}
 
 
-	return false /*if game has ended or starterd*/;
+	return false; //game is still on
 }
 
 
@@ -181,9 +192,7 @@ bool Game::handleAnswerFromUser(User* user, int answerNo, int time)
 
 	_currentTurnAnswers++;
 
-	this->handleNextTurn();
-
-	return false /*If game has started or finished*/;
+	return this->handleNextTurn();
 }
 
 
@@ -194,11 +203,9 @@ bool Game::leaveGame(User* currUser)
 	if (it != _users.end())
 	{
 		_users.erase(it);
-		this->handleNextTurn();
 	}
 
-	//return game is ended
-	return false;
+	return this->handleNextTurn();;
 }
 
 
