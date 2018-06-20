@@ -146,7 +146,7 @@ bool Game::handleNextTurn()
 	{
 		this->handleFinishGame();
 
-		return true; //game has ended
+		return false; //game has ended
 	}
 	else
 	{
@@ -156,7 +156,10 @@ bool Game::handleNextTurn()
 			_currQuestionIndex++;
 
 			if (_questions_no == _currQuestionIndex) //if the question is the last one
+			{
 				this->handleFinishGame();
+				return false;
+			}
 			else
 			{
 				this->sendQuestionToAllUsers();
@@ -165,7 +168,7 @@ bool Game::handleNextTurn()
 	}
 
 
-	return false; //game is still on
+	return true; //game is still on
 }
 
 

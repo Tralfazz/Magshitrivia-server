@@ -303,11 +303,6 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 		return false; //send 1041
 	}
 
-	//this->_connectedUsers.insert(new User())
-
-	User* usr = new User(username, msg->getSock());
-	msg->setUser(usr);
-
 
 	if (!_db.isUserExists(username))
 	{
@@ -521,6 +516,7 @@ void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
 void TriviaServer::handleRecievedMessages()
 {
 	RecievedMessage* msg;
+	User* loginUser = nullptr;
 
 	while (true)
 	{
@@ -538,7 +534,14 @@ void TriviaServer::handleRecievedMessages()
 				switch (msg->getMessageCode())
 				{
 				case Protocol::Request::SIGN_IN:
-					this->handleSignin(msg);
+					loginUser = this->handleSignin(msg); //assign to user object
+
+					if (loginUser)
+					{
+						this->_connectedUsers[msg->getSock()] = loginUser;
+						loginUser = nullptr;
+					}
+
 					TRACE("Client requested sign in")
 						break;
 
