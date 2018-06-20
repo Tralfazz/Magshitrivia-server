@@ -68,13 +68,12 @@ bool User::joinRoom(Room* newRoom)
 			this->_currRoom = newRoom;
 			return true;
 		}
-		else
-		{
-			return false;
-		}
 	}
 	else
+	{
+		send(std::to_string(Protocol::Response::JOIN_ROOM) + "2");
 		return false;
+	}
 }
 
 void User::leaveRoom()

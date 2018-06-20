@@ -22,7 +22,7 @@ class Room
 		std::string getUsersAsString(std::vector<User*> usersList, User* excludeUser);
 		void sendMessage(std::string msg);
 		void sendMessage(User* user, std::string msg);
-
+		
 
 	public:
 

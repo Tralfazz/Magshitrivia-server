@@ -241,7 +241,7 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 				break;
 
 			case Protocol::Request::LEAVE_ROOM:
-				this->handleLeaveGame(msg); //returns bool
+				this->handleLeaveRoom(msg); //returns bool
 				TRACE("Client requested to leave a room")
 				break;
 
@@ -323,8 +323,16 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 
 	if (_db.isUserAndPassMatch(username , password))
 	{
-		Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0");
-		return new User(username, msg->getSock());
+		if (this->getUserByName(username))
+		{
+			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "2"); //User is already connected
+			return nullptr;
+		}
+		else
+		{
+			Helper::sendData(msg->getSock(), std::to_string(Protocol::Response::SIGN_IN) + "0");
+			return new User(username, msg->getSock());
+		}
 	}
 
 		
@@ -509,14 +517,7 @@ bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 		int roomId = std::stoi(msg->getValues()[0]);
 		Room* requestedRoom = this->getRoomById(roomId);
 
-		if (requestedRoom)
-		{
-			usr->joinRoom(requestedRoom);
-			return true;
-		}
-		else
-			Helper::sendData(usr->getSocket(), Protocol::Request::JOIN_ROOM + "2"); //room is not found
-		
+		return usr->joinRoom(requestedRoom);
 	}
 
 	return false;

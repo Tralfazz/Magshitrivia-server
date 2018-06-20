@@ -94,16 +94,14 @@ bool Room::joinRoom(User* user)
 
 void Room::leaveRoom(User* user)
 {
-	int count = 0;
-	for (auto usr : _users)
+	std::vector<User*>::iterator it = std::find(_users.begin(), _users.end(), user);
+
+	if (it != _users.end())
 	{
-		if (usr == user)
-		{
-			_users.erase(_users.begin() + count);
-			Helper::sendData(user->getSocket(), std::to_string(Protocol::Response::LEAVE_ROOM) + "0");
-			sendMessage(user, getUsersListMessage());
-		}
-		count++;
+		_users.erase(it);
+
+		user->send(std::to_string(Protocol::Response::LEAVE_ROOM) + "0"); //success
+		this->sendMessage(this->getUsersListMessage());
 	}
 }
 
