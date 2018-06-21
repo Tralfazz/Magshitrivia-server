@@ -102,9 +102,15 @@ std::vector<Question*> DataBase::initQuestions(int questionsNo)
 }
 
 
-std::vector<std::string> DataBase::getBestScores()
+std::vector<std::pair<std::string, int>> DataBase::getBestScores()
 {
-	return std::vector<std::string>();
+	const std::string query = "SELECT username , SUM(is_correct) FROM t_players_answers GROUP BY username ORDER BY SUM(is_correct) DESC LIMIT 3;";
+	std::vector<std::pair<std::string, int>> scores;
+
+
+	sqlite3_exec(_connection, query.c_str(), callbackBestScores, static_cast<void*>(&scores), NULL);
+
+	return scores;
 }
 
 
@@ -178,6 +184,10 @@ int DataBase::callbackQuestions(void* data, int argc, char** argv, char** cols)
 
 int DataBase::callbackBestScores(void* data, int argc, char** argv, char** cols)
 {
+	std::vector<std::pair<std::string, int>>* scores = static_cast<std::vector<std::pair<std::string, int>>*>(data);
+
+	scores->push_back(std::pair<std::string, int>(std::string(argv[0]), std::atoi(argv[1])));
+
 	return 0;
 }
 

@@ -501,7 +501,32 @@ void TriviaServer::handleGetRooms(RecievedMessage* msg)
 
 void TriviaServer::handleGetBestScores(RecievedMessage* msg) 
 {
-	//TODO
+	User* usr = msg->getUser();
+
+	if (usr)
+	{
+		std::vector<std::pair<std::string, int>> scores = _db.getBestScores();
+		std::stringstream scoresMsg;
+
+		int count = 0;
+		const int numOfUsers = 3;
+
+		scoresMsg << Protocol::Response::BEST_SCORES;
+
+
+		for (std::pair<std::string, int> i : scores)
+		{
+			count++;
+
+			scoresMsg << Helper::getPaddedNumber(i.first.length() , 2) << i.first;
+			scoresMsg << Helper::getPaddedNumber(i.second , 6);
+		}
+
+		for (count; count < numOfUsers; count++) { scoresMsg << Helper::getPaddedNumber(0 , 8); } //in case that there are no 3 users
+		
+
+		usr->send(scoresMsg.str());
+	}
 }
 
 
@@ -509,6 +534,7 @@ void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
 {
 	//TODO
 }
+
 
 ///////----------------------------- Message Queue --------------------------------///////
 
@@ -629,6 +655,7 @@ void TriviaServer::handleRecievedMessages()
 		lock.unlock();
 	}
 }
+
 
 void TriviaServer::addRecievedMessage(RecievedMessage* msg)
 {

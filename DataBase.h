@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <map>
 
 #include "sqlite3.h"
 #include "Question.h"
@@ -31,7 +32,7 @@ class DataBase
 		bool isUserAndPassMatch(std::string username, std::string password);
 
 		std::vector<Question*> initQuestions(int questionsNo);
-		std::vector<std::string> getBestScores();
+		std::vector<std::pair<std::string , int>> getBestScores();
 		std::vector<std::string> getPersonalStatus(std::string username);
 
 		int insertNewGame();
