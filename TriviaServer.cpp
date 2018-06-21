@@ -7,6 +7,12 @@
 
 int TriviaServer::_roomIdSequence = 0;
 
+
+/*
+*	TriviaServer c'tor
+*	
+*	Initializes the listening socket
+*/
 TriviaServer::TriviaServer()
 {
 	//init Database
@@ -19,6 +25,11 @@ TriviaServer::TriviaServer()
 }
 
 
+/*
+*	TriviaServer d'tor
+*
+*	closes the listening socket, deletes all of the users and rooms
+*/
 TriviaServer::~TriviaServer()
 {
 	std::map<SOCKET, User*>::iterator usersIt;
@@ -40,6 +51,9 @@ TriviaServer::~TriviaServer()
 }
 
 
+/*
+*	Bindes and listens with the listening socket
+*/
 void TriviaServer::bindAndListen()
 {
 	struct sockaddr_in sa = { 0 };
@@ -57,6 +71,9 @@ void TriviaServer::bindAndListen()
 }
 
 
+/*
+*	Accepts a new client and creats its clinet handler thread
+*/
 void TriviaServer::accept()
 {
 	SOCKET clientSocket = ::accept(this->_socket, NULL, NULL);
@@ -70,6 +87,11 @@ void TriviaServer::accept()
 }
 
 
+/*
+*	Sets up the server
+*
+*	(Binds and listens to new clients and creates the handleReivedMessages thread)
+*/
 void TriviaServer::server()
 {
 	this->bindAndListen();
@@ -84,8 +106,14 @@ void TriviaServer::server()
 }
 
 
-
-
+/*
+*	Builds up a new RecivedMessage object
+*
+*	@param sc the socket of the client
+*	@param msgCode the message code of the message
+*
+*	@return a new RecivedMessage object
+*/
 RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 {
 	std::vector<std::string> msgValues;
@@ -193,6 +221,11 @@ RecievedMessage* TriviaServer::buildReciveMessage(SOCKET sc, int msgCode)
 }
 
 
+/*
+*	The client handler method (pushes messages to the queue)
+*
+*	@param clientSock the socket of the client
+*/
 void TriviaServer::clientHandler(SOCKET clientSock)
 {
 	RecievedMessage* msg = nullptr;
@@ -231,6 +264,11 @@ void TriviaServer::clientHandler(SOCKET clientSock)
 }
 
 
+/*
+*	Safley deletes a client from the server (handles it like sign out)
+*
+*	@param msg the message from the client
+*/
 void TriviaServer::safeDeleteUser(RecievedMessage* msg)
 {
 	try 
@@ -253,7 +291,7 @@ void TriviaServer::safeDeleteUser(RecievedMessage* msg)
 /*
  *	This method handles with the sign in request of the user
  *	
- *	@param msg the message which 
+ *	@param msg the sign in message
  *	@return if the sign in was successful then pointer to the user else null  
 */
 User* TriviaServer::handleSignin(RecievedMessage* msg)
@@ -282,8 +320,11 @@ User* TriviaServer::handleSignin(RecievedMessage* msg)
 }
 
 
-
 /*
+*	This method handles with the sign up request of the user
+*
+*	@param msg the sign up message
+*	@return if the sign up was successful
 */
 bool TriviaServer::handleSignUp(RecievedMessage* msg)
 {
@@ -317,7 +358,11 @@ bool TriviaServer::handleSignUp(RecievedMessage* msg)
 }
 
 
-
+/*
+*	This method handles with the sign out request of the user (closes everything for him)
+*
+*	@param msg the sign out message
+*/
 void TriviaServer::handleSignOut(RecievedMessage* msg)
 {
 	if (this->_connectedUsers[msg->getSock()])
@@ -332,7 +377,11 @@ void TriviaServer::handleSignOut(RecievedMessage* msg)
 }
 
 
-
+/*
+*	This method handles with the user's request of leaving a game
+*
+*	@param msg the sign out message
+*/
 void TriviaServer::handleLeaveGame(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
@@ -344,6 +393,11 @@ void TriviaServer::handleLeaveGame(RecievedMessage* msg)
 }
 
 
+/*
+*	This method handles with the sign out request of the user (closes everything for him)
+*
+*	@param msg the sign out message
+*/
 void TriviaServer::handleStartGame(RecievedMessage* msg)
 {
 	//std::stringstream msg;
@@ -380,7 +434,11 @@ void TriviaServer::handleStartGame(RecievedMessage* msg)
 }
 
 
-
+/*
+*	This method handles with an answer which was sent by the user
+*
+*	@param msg the message from the client
+*/
 void TriviaServer::handlePlayerAnswer(RecievedMessage* msg)
 {
 	User* currUser = msg->getUser();
@@ -399,6 +457,12 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* msg)
 }
 
 
+/*
+*	This method handles with a create room request
+*
+*	@param msg the message from the client
+*	@return if the creation was succesful
+*/
 bool TriviaServer::handleCreateRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
@@ -423,6 +487,12 @@ bool TriviaServer::handleCreateRoom(RecievedMessage* msg)
 }
 
 
+/*
+*	This method handles with a close room request
+*
+*	@param msg the message from the client
+*	@return if the sign up was successful
+*/
 bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
@@ -443,6 +513,12 @@ bool TriviaServer::handleCloseRoom(RecievedMessage* msg)
 }
 
 
+/*
+*	This method handles with the join room request of the user
+*
+*	@param msg the join room message
+*	@return if the sign up was successful
+*/
 bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
@@ -459,6 +535,12 @@ bool TriviaServer::handleJoinRoom(RecievedMessage* msg)
 }
 
 
+/*
+*	This method handles with the leave room request of the user
+*
+*	@param msg the leave room message
+*	@return if the operation was successful
+*/
 bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
 {
 	User* usr = msg->getUser();
@@ -472,6 +554,11 @@ bool TriviaServer::handleLeaveRoom(RecievedMessage* msg)
 }
 
 
+/*
+*	This method returns all of the users in a room
+*
+*	@param msg the request message
+*/
 void TriviaServer::handleGetUserInRoom(RecievedMessage* msg)
 {
 	Room* r = this->getRoomById(std::stoi(msg->getValues()[0]));
@@ -479,7 +566,11 @@ void TriviaServer::handleGetUserInRoom(RecievedMessage* msg)
 }
 
 
-
+/*
+*	This method returns all of the rooms to the client
+*
+*	@param msg the request message
+*/
 void TriviaServer::handleGetRooms(RecievedMessage* msg)
 {
 	std::stringstream roomsMsg;
@@ -499,6 +590,11 @@ void TriviaServer::handleGetRooms(RecievedMessage* msg)
 }
 
 
+/*
+*	Sends a top 3 scores and users list to the client
+*
+*	@param msg the request message
+*/
 void TriviaServer::handleGetBestScores(RecievedMessage* msg) 
 {
 	User* usr = msg->getUser();
@@ -530,6 +626,11 @@ void TriviaServer::handleGetBestScores(RecievedMessage* msg)
 }
 
 
+/*
+*	This method gets the personal status of a client (total number of questions answered and more statictics)
+*
+*	@param msg the request message
+*/
 void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
 {
 	//TODO
@@ -539,6 +640,9 @@ void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
 ///////----------------------------- Message Queue --------------------------------///////
 
 
+/*
+*	Takes care of the queue of the RecivedMessages and handles each one of it
+*/
 void TriviaServer::handleRecievedMessages()
 {
 	RecievedMessage* msg;
@@ -657,6 +761,10 @@ void TriviaServer::handleRecievedMessages()
 }
 
 
+/*
+*	Pushes a new RecivedMessage to the queue
+*	@param msg the new RecivedMessage to push to the queue
+*/
 void TriviaServer::addRecievedMessage(RecievedMessage* msg)
 {
 	std::unique_lock<std::mutex> lock(_qLock);
@@ -664,9 +772,17 @@ void TriviaServer::addRecievedMessage(RecievedMessage* msg)
 	_qCV.notify_all();
 }
 
+
+
 ///////---------------------------------- Getters ----------------------------------///////
 
 
+/*
+*	Gets a Room by id
+*
+*	@param id the id of the room
+*	@return the selected Room obejct's pointer
+*/
 Room* TriviaServer::getRoomById(int id)
 {
 	std::map<int, Room*>::iterator it;
@@ -683,6 +799,12 @@ Room* TriviaServer::getRoomById(int id)
 }
 
 
+/*
+*	Gets a User by its name
+*
+*	@param name the name of the user
+*	@return the selected User obejct's pointer
+*/
 User* TriviaServer::getUserByName(std::string name)
 {
 	std::map<SOCKET, User*>::iterator it;
@@ -699,6 +821,12 @@ User* TriviaServer::getUserByName(std::string name)
 }
 
 
+/*
+*	Gets a User by its socket
+*
+*	@param sock the socket of the user
+*	@return the selected User obejct's pointer
+*/
 User* TriviaServer::getUserBySocket(SOCKET sock)
 {
 	std::map<SOCKET, User*>::iterator it;

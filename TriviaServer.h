@@ -17,18 +17,6 @@
 #include "Validator.h"
 
 
-//tmp user-struct
-
-typedef	struct tmp_user
-{
-	User* _user;
-	std::string _password;
-
-	tmp_user(User* user , std::string password) : _user(user) , _password(password) { }
-
-} tmp_user;
-
-
 
 class TriviaServer
 {
@@ -43,9 +31,6 @@ class TriviaServer
 		std::queue<RecievedMessage*> _qRcvMessages;
 
 		static int _roomIdSequence; //roomID counter
-
-		//tmp
-		std::vector<tmp_user> _tmp_db;
 
 		
 		void bindAndListen();
