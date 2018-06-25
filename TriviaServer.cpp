@@ -623,6 +623,10 @@ void TriviaServer::handleGetBestScores(RecievedMessage* msg)
 
 		usr->send(scoresMsg.str());
 	}
+	else
+	{
+		throw std::exception("user not added to message");
+	}
 }
 
 
@@ -633,7 +637,44 @@ void TriviaServer::handleGetBestScores(RecievedMessage* msg)
 */
 void TriviaServer::handleGetPersonalStatus(RecievedMessage* msg)
 {
-	//TODO
+	User* usr = msg->getUser();
+	
+	if (usr)
+	{
+		std::vector<int> status = _db.getPersonalStatus(usr->getUsername());
+		std::stringstream statusMsg;
+
+		statusMsg << Protocol::Response::PERSONAL_MODE;
+
+		if (status.empty())
+		{
+			statusMsg << Helper::getPaddedNumber(0,20); // 4 + 6 + 6 + 4 = 20 , in case the user has no games
+		}
+		else
+		{
+			//numberOfGames
+			statusMsg << Helper::getPaddedNumber(status.back(), 4);
+			status.pop_back();
+
+			//numberOfRightAns
+			statusMsg << Helper::getPaddedNumber(status.back(), 6);
+			status.pop_back();
+
+			//numerOfWrongAns
+			statusMsg << Helper::getPaddedNumber(status.back(), 6);
+			status.pop_back();
+
+			//avgTimeForAns
+			statusMsg << Helper::getPaddedNumber(status.back(), 4);
+			status.pop_back();
+		}
+
+		usr->send(statusMsg.str());
+	}
+	else
+	{
+		throw std::exception("user not added to message");
+	}
 }
 
 

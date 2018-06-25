@@ -33,7 +33,7 @@ class DataBase
 
 		std::vector<Question*> initQuestions(int questionsNo);
 		std::vector<std::pair<std::string , int>> getBestScores();
-		std::vector<std::string> getPersonalStatus(std::string username);
+		std::vector<int> getPersonalStatus(std::string username);
 
 		int insertNewGame();
 		bool updateGameStatus(int gameId);

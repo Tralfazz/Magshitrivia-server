@@ -114,9 +114,14 @@ std::vector<std::pair<std::string, int>> DataBase::getBestScores()
 }
 
 
-std::vector<std::string> DataBase::getPersonalStatus(std::string username)
+std::vector<int> DataBase::getPersonalStatus(std::string username)
 {
-	return std::vector<std::string>();
+	const std::string query = "SELECT COUNT(DISTINCT game_id),SUM(is_correct),COUNT(is_correct) - SUM(is_correct),AVG(answer_time) FROM t_players_answers WHERE username='"+username+"';";
+	std::vector<int> status;
+
+	sqlite3_exec(_connection, query.c_str(), callbackPersonalStatus, static_cast<void*>(&status), NULL);
+
+	return status;
 }
 
 
@@ -194,5 +199,13 @@ int DataBase::callbackBestScores(void* data, int argc, char** argv, char** cols)
 
 int DataBase::callbackPersonalStatus(void* data, int argc, char** argv, char** cols)
 {
+	std::vector<int>* status = static_cast<std::vector<int>*>(data);
+
+	double avg = std::stod(std::string(argv[3]));
+	status->push_back((int)(avg*100)); // avg time
+
+	status->push_back(atoi(argv[2])); // incorrect
+	status->push_back(atoi(argv[1])); // correct
+	status->push_back(atoi(argv[0])); // game no.
 	return 0;
 }
